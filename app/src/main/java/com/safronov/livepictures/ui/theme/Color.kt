@@ -16,4 +16,6 @@ object Colors {
     val Gray = Color(0xFF1C1C1C)
     val Blue = Color(0xFF1976D2)
     val Background = Color(0xFF000000)
+    val White = Color(0xFFFFFFFF)
+    val LightGray = Color(0xFF8B8B8B)
 }
