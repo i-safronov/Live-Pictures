@@ -17,13 +17,14 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                 newPaths.addAll(
                     state.paths.map { it: PathData ->
                         it.copy(
-                            color = it.color.copy(alpha = 30f),
+                            color = it.color.copy(alpha = 0.1f),
                         )
                     }
                 )
                 state.copy(
                     paths = newPaths,
-                    currentFrame = state.currentFrame + 1
+                    currentFrameId = state.currentFrameId + 1,
+                    deleteFrameValue = ColorValue(enabled = true)
                 )
             }
 
@@ -34,24 +35,39 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
             }
 
             Executor.OnDeleteFrame -> {
-                if (state.currentFrame < 1) {
+                if (state.currentFrameId < 1) {
                     state.copy(
                         deleteFrameValue = ColorValue(enabled = false)
                     )
                 } else {
                     val newPaths = mutableStateListOf<PathData>()
-                    val prevFrame = state.currentFrame - 1
+                    val prevFrame = state.currentFrameId - 1
                     newPaths.addAll(
                         state.paths.filter {
-                            it.pathId <= prevFrame
+                            it.frameId <= prevFrame
+                        }.map {
+                            it.copy(
+                                color = it.color.copy(alpha = 1f)
+                            )
                         }
                     )
                     state.copy(
                         paths = newPaths,
                         deleteFrameValue = if (prevFrame < 1) ColorValue(enabled = false) else state.deleteFrameValue,
-                        currentFrame = prevFrame
+                        currentFrameId = prevFrame
                     )
                 }
+            }
+
+            is Executor.AddPath -> {
+                state.paths.add(
+                    PathData(
+                        path = ex.path,
+                        color = ex.color,
+                        frameId = state.currentFrameId
+                    )
+                )
+                state.copy()
             }
         }
 

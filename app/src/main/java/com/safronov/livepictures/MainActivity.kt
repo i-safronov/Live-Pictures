@@ -25,7 +25,8 @@ class MainActivity : ComponentActivity() {
                 val canvasViewModel: CanvasViewModel = getViewModel()
 
                 CanvasScreen(
-                    state = canvasViewModel.state
+                    state = canvasViewModel.state,
+                    dispatch = canvasViewModel::dispatch
                 )
             }
         }

@@ -19,7 +19,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,13 +39,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.safronov.livepictures.R
+import com.safronov.livepictures.ui.composable.CanvasContract.*
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
 
 data class PathData(
     val path: Path = Path(),
     val color: Color,
-    val pathId: Int
+    val frameId: Int
 )
 
 val mainColors = listOf(
@@ -59,10 +59,11 @@ val mainColors = listOf(
 @Composable
 fun CanvasScreen(
     modifier: Modifier = Modifier,
-    state: CanvasContract.State
+    state: State,
+    dispatch: (Executor) -> Unit
 ) {
     var pathColor by remember { mutableStateOf(Colors.Blue) }
-    val paths: SnapshotStateList<PathData> = remember { mutableStateListOf<PathData>() }
+    val paths: SnapshotStateList<PathData> = state.paths
     var isShowingColorPalette by remember { mutableStateOf(false) }
     var bottomBarSize by remember { mutableStateOf(IntSize.Zero) }
 
@@ -88,11 +89,11 @@ fun CanvasScreen(
                     },
                     deleteFrameValue = state.deleteFrameValue,
                     onDeleteFrame = {
-                        //TODO
+                        dispatch(Executor.OnDeleteFrame)
                     },
                     addFrameValue = state.addFrameValue,
                     onAddFrame = {
-                        //TODO
+                        dispatch(Executor.OnAddFrame)
                     },
                     listOfFramesValue = state.listOfFramesValue,
                     onListOfFrames = {
@@ -187,14 +188,11 @@ fun CanvasScreen(
                                     y = change.position.y
                                 )
 
-                                //TODO mb here trigger parent
-                                paths.add(
-                                    PathData(
+                                dispatch(
+                                    Executor.AddPath(
                                         path = tempPath,
                                         color = pathColor,
-                                        pathId = 0
-                                    )
-                                )
+                                ))
                             }
                         }
                 ) {
@@ -512,7 +510,7 @@ fun CanvasScreenPreview() {
             .background(Colors.White)
     ) {
         CanvasScreen(
-            state = CanvasContract.State(
+            state = State(
                 prevActionValue = ColorValue(enabled = false),
                 nextActionValue = ColorValue(enabled = false),
                 deleteFrameValue = ColorValue(enabled = true),
@@ -524,7 +522,10 @@ fun CanvasScreenPreview() {
                 brushValue = ColorValue(enabled = true),
                 eraseValue = ColorValue(enabled = true),
                 instrumentsValue = ColorValue(enabled = true)
-            )
+            ),
+            dispatch = {
+
+            }
         )
     }
 }
