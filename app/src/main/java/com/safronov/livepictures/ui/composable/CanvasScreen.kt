@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,7 +45,8 @@ import com.safronov.livepictures.ui.theme.Colors
 
 data class PathData(
     val path: Path = Path(),
-    val color: Color
+    val color: Color,
+    val pathId: Int
 )
 
 val mainColors = listOf(
@@ -57,56 +59,53 @@ val mainColors = listOf(
 @Composable
 fun CanvasScreen(
     modifier: Modifier = Modifier,
-    prevActionValue: ColorValue,
-    nextActionValue: ColorValue,
-    onPrevAction: () -> Unit,
-    onNextAction: () -> Unit,
-    deleteFrameValue: ColorValue,
-    addFrameValue: ColorValue,
-    listOfFramesValue: ColorValue,
-    onDeleteFrame: () -> Unit,
-    onAddFrame: () -> Unit,
-    onListOfFrames: () -> Unit,
-    stopAnimationValue: ColorValue,
-    startAnimationValue: ColorValue,
-    onStopAnimationValue: () -> Unit,
-    onStartAnimationValue: () -> Unit,
-    penValue: ColorValue,
-    onPen: () -> Unit,
-    brushValue: ColorValue,
-    onBrush: () -> Unit = {},
-    eraseValue: ColorValue,
-    onErase: () -> Unit = {},
-    instrumentsValue: ColorValue,
-    onInstruments: () -> Unit = {},
+    state: CanvasContract.State
 ) {
     var pathColor by remember { mutableStateOf(Colors.Blue) }
-    val paths = remember { mutableStateListOf<PathData>() }
+    val paths: SnapshotStateList<PathData> = remember { mutableStateListOf<PathData>() }
     var isShowingColorPalette by remember { mutableStateOf(false) }
     var bottomBarSize by remember { mutableStateOf(IntSize.Zero) }
 
     Box(
         modifier = modifier
             .background(Colors.Background)
+            .padding(
+                top = 20.dp,
+                bottom = 20.dp
+            )
             .fillMaxSize()
     ) {
         Scaffold(
             topBar = {
                 TopBar(
-                    prevActionValue = prevActionValue,
-                    onPrevAction = onPrevAction,
-                    nextActionValue = nextActionValue,
-                    onNextAction = onNextAction,
-                    deleteFrameValue = deleteFrameValue,
-                    onDeleteFrame = onDeleteFrame,
-                    addFrameValue = addFrameValue,
-                    onAddFrame = onAddFrame,
-                    listOfFramesValue = listOfFramesValue,
-                    onListOfFrames = onListOfFrames,
-                    stopAnimationValue = stopAnimationValue,
-                    onStopAnimationValue = onStopAnimationValue,
-                    startAnimationValue = startAnimationValue,
-                    onStartAnimationValue = onStartAnimationValue
+                    prevActionValue = state.prevActionValue,
+                    onPrevAction = {
+                        //TODO
+                    },
+                    nextActionValue = state.nextActionValue,
+                    onNextAction = {
+                        //TODO
+                    },
+                    deleteFrameValue = state.deleteFrameValue,
+                    onDeleteFrame = {
+                        //TODO
+                    },
+                    addFrameValue = state.addFrameValue,
+                    onAddFrame = {
+                        //TODO
+                    },
+                    listOfFramesValue = state.listOfFramesValue,
+                    onListOfFrames = {
+                        //TODO
+                    },
+                    stopAnimationValue = state.stopAnimationValue,
+                    onStopAnimationValue = {
+                        //TODO
+                    },
+                    startAnimationValue = state.startAnimationValue,
+                    onStartAnimationValue = {
+                        //TODO
+                    }
                 )
             },
             bottomBar = {
@@ -117,14 +116,22 @@ fun CanvasScreen(
                             .onGloballyPositioned { layoutCoordinates ->
                                 bottomBarSize = layoutCoordinates.size
                             },
-                        penValue = penValue,
-                        onPen = onPen,
-                        brushValue = brushValue,
-                        onBrush = onBrush,
-                        eraseValue = eraseValue,
-                        onErase = onErase,
-                        instrumentsValue = instrumentsValue,
-                        onInstruments = onInstruments,
+                        penValue = state.penValue,
+                        onPen = {
+                            //TODO
+                        },
+                        brushValue = state.brushValue,
+                        onBrush = {
+                            //TODO
+                        },
+                        eraseValue = state.eraseValue,
+                        onErase = {
+                            //TODO
+                        },
+                        instrumentsValue = state.instrumentsValue,
+                        onInstruments = {
+                            //TODO
+                        },
                         colorValue = ColorValue(
                             enabled = true,
                             enableColor = pathColor,
@@ -180,10 +187,12 @@ fun CanvasScreen(
                                     y = change.position.y
                                 )
 
+                                //TODO mb here trigger parent
                                 paths.add(
                                     PathData(
                                         path = tempPath,
-                                        color = pathColor
+                                        color = pathColor,
+                                        pathId = 0
                                     )
                                 )
                             }
@@ -503,28 +512,19 @@ fun CanvasScreenPreview() {
             .background(Colors.White)
     ) {
         CanvasScreen(
-            prevActionValue = ColorValue(enabled = false),
-            nextActionValue = ColorValue(enabled = false),
-            onPrevAction = {},
-            onNextAction = {},
-            deleteFrameValue = ColorValue(enabled = true),
-            addFrameValue = ColorValue(enabled = true),
-            listOfFramesValue = ColorValue(enabled = true),
-            onDeleteFrame = {},
-            onAddFrame = {},
-            onListOfFrames = {},
-            stopAnimationValue = ColorValue(enabled = false),
-            startAnimationValue = ColorValue(enabled = false),
-            onStartAnimationValue = {},
-            onStopAnimationValue = {},
-            penValue = ColorValue(enabled = true),
-            brushValue = ColorValue(enabled = true),
-            eraseValue = ColorValue(enabled = true),
-            onPen = {},
-            onBrush = {},
-            onErase = {},
-            onInstruments = {},
-            instrumentsValue = ColorValue(enabled = true)
+            state = CanvasContract.State(
+                prevActionValue = ColorValue(enabled = false),
+                nextActionValue = ColorValue(enabled = false),
+                deleteFrameValue = ColorValue(enabled = true),
+                addFrameValue = ColorValue(enabled = true),
+                listOfFramesValue = ColorValue(enabled = true),
+                stopAnimationValue = ColorValue(enabled = false),
+                startAnimationValue = ColorValue(enabled = false),
+                penValue = ColorValue(enabled = true),
+                brushValue = ColorValue(enabled = true),
+                eraseValue = ColorValue(enabled = true),
+                instrumentsValue = ColorValue(enabled = true)
+            )
         )
     }
 }
