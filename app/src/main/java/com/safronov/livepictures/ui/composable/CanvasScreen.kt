@@ -19,12 +19,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -39,6 +41,11 @@ import androidx.compose.ui.unit.dp
 import com.safronov.livepictures.R
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
+
+data class PathData(
+    val path: Path = Path(),
+    val color: Color
+)
 
 val mainColors = listOf(
     Colors.White,
@@ -74,6 +81,7 @@ fun CanvasScreen(
     onInstruments: () -> Unit = {},
 ) {
     var pathColor by remember { mutableStateOf(Colors.Blue) }
+    val paths = remember { mutableStateListOf<PathData>() }
     var isShowingColorPalette by remember { mutableStateOf(false) }
     var bottomBarSize by remember { mutableStateOf(IntSize.Zero) }
 
@@ -131,8 +139,7 @@ fun CanvasScreen(
             }
         ) { innerPadding ->
             val image = ImageBitmap.imageResource(id = R.drawable.ic_canvas)
-            val linePath = remember { mutableStateOf(Path()) }
-            val tempPath = Path()
+            var tempPath = Path()
 
             Box(
                 modifier = Modifier
@@ -158,7 +165,11 @@ fun CanvasScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .pointerInput(Unit) {
-                            detectDragGestures { change, dragAmount ->
+                            detectDragGestures(
+                                onDragStart = {
+                                    tempPath = Path()
+                                }
+                            ) { change, dragAmount ->
                                 tempPath.moveTo(
                                     x = change.position.x - dragAmount.x,
                                     y = change.position.y - dragAmount.y
@@ -169,17 +180,22 @@ fun CanvasScreen(
                                     y = change.position.y
                                 )
 
-                                linePath.value = Path().apply {
-                                    addPath(tempPath)
-                                }
+                                paths.add(
+                                    PathData(
+                                        path = tempPath,
+                                        color = pathColor
+                                    )
+                                )
                             }
                         }
                 ) {
-                    drawPath(
-                        path = linePath.value,
-                        color = pathColor,
-                        style = Stroke(5f)
-                    )
+                    paths.forEach { path ->
+                        drawPath(
+                            path = path.path,
+                            color = path.color,
+                            style = Stroke(5f)
+                        )
+                    }
                 }
             }
         }
