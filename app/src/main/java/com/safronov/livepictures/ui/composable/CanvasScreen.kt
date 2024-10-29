@@ -1,6 +1,7 @@
 package com.safronov.livepictures.ui.composable
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -22,9 +24,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.safronov.livepictures.R
@@ -98,71 +102,33 @@ fun CanvasScreen(
     ) { innerPadding ->
         val image = ImageBitmap.imageResource(id = R.drawable.ic_canvas)
 
-        Canvas(
+        Box(
             modifier = Modifier
                 .background(Colors.Background)
                 .fillMaxSize()
                 .padding(innerPadding)
-                .clip(RoundedCornerShape(size = 20.dp))
                 .padding(
-                    start = 16.dp,
                     end = 16.dp,
+                    start = 16.dp,
                     top = 32.dp,
-                    bottom = 22.dp
+                    bottom = 32.dp
                 )
+                .clip(RoundedCornerShape(size = 20.dp))
         ) {
-            val scaleX = size.width / image.width.toFloat()
-            val scaleY = size.height / image.height.toFloat()
+            Image(
+                modifier = Modifier.fillMaxSize(),
+                bitmap = image,
+                contentDescription = "Background Image",
+                contentScale = ContentScale.Crop,
+            )
 
-            drawIntoCanvas { canvas ->
-                withTransform({
-                    scale(scaleX, scaleY)
-                }) {
-                    canvas.drawImage(
-                        image = image,
-                        topLeftOffset = androidx.compose.ui.geometry.Offset.Zero,
-                        paint = Paint()
-                    )
-                }
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                //TODO implement
             }
         }
-    }
-}
-
-@Composable
-@Preview
-fun CanvasScreenPreview() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Colors.White)
-    ) {
-        CanvasScreen(
-            prevActionValue = ColorValue(enabled = false),
-            nextActionValue = ColorValue(enabled = false),
-            onPrevAction = {},
-            onNextAction = {},
-            deleteFrameValue = ColorValue(enabled = true),
-            addFrameValue = ColorValue(enabled = true),
-            listOfFramesValue = ColorValue(enabled = true),
-            onDeleteFrame = {},
-            onAddFrame = {},
-            onListOfFrames = {},
-            stopAnimationValue = ColorValue(enabled = false),
-            startAnimationValue = ColorValue(enabled = false),
-            onStartAnimationValue = {},
-            onStopAnimationValue = {},
-            penValue = ColorValue(enabled = true),
-            brushValue = ColorValue(enabled = true),
-            eraseValue = ColorValue(enabled = true),
-            colorValue = ColorValue(enabled = true, enableColor = Colors.Blue),
-            onPen = {},
-            onBrush = {},
-            onErase = {},
-            onInstruments = {},
-            onColor = {},
-            instrumentsValue = ColorValue(enabled = true)
-        )
     }
 }
 
@@ -184,7 +150,6 @@ private fun BottomBar(
             .fillMaxWidth()
             .background(Colors.Background)
             .padding(
-                top = 12.dp,
                 bottom = 12.dp
             ),
         verticalAlignment = Alignment.CenterVertically,
@@ -242,16 +207,20 @@ private fun BottomBar(
             )
         }
 
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(percent = 100))
-                .size(28.dp)
-                .background(
-                    color = colorValue.colorByState(),
-                    shape = RoundedCornerShape(percent = 100)
-                )
-                .clickable(enabled = colorValue.enabled, onClick = onColor)
-        )
+        IconButton(
+            enabled = colorValue.enabled,
+            onClick = onColor,
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(percent = 100))
+                    .size(28.dp)
+                    .background(
+                        color = colorValue.colorByState(),
+                        shape = RoundedCornerShape(percent = 100)
+                    )
+            )
+        }
     }
 }
 
@@ -375,11 +344,48 @@ private fun TopBar(
                 Icon(
                     modifier = Modifier
                         .size(24.dp),
-                    painter = painterResource(R.drawable.ic_stop_animation),
+                    painter = painterResource(R.drawable.ic_start_animation),
                     contentDescription = "Start an animation",
                     tint = startAnimationValue.colorByState(),
                 )
             }
         }
+    }
+}
+
+@Composable
+@Preview
+fun CanvasScreenPreview() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Colors.White)
+    ) {
+        CanvasScreen(
+            prevActionValue = ColorValue(enabled = false),
+            nextActionValue = ColorValue(enabled = false),
+            onPrevAction = {},
+            onNextAction = {},
+            deleteFrameValue = ColorValue(enabled = true),
+            addFrameValue = ColorValue(enabled = true),
+            listOfFramesValue = ColorValue(enabled = true),
+            onDeleteFrame = {},
+            onAddFrame = {},
+            onListOfFrames = {},
+            stopAnimationValue = ColorValue(enabled = false),
+            startAnimationValue = ColorValue(enabled = false),
+            onStartAnimationValue = {},
+            onStopAnimationValue = {},
+            penValue = ColorValue(enabled = true),
+            brushValue = ColorValue(enabled = true),
+            eraseValue = ColorValue(enabled = true),
+            colorValue = ColorValue(enabled = true, enableColor = Colors.Blue),
+            onPen = {},
+            onBrush = {},
+            onErase = {},
+            onInstruments = {},
+            onColor = {},
+            instrumentsValue = ColorValue(enabled = true)
+        )
     }
 }
