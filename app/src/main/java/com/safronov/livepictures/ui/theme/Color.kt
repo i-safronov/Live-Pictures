@@ -17,7 +17,7 @@ object Colors {
     val Blue = Color(0xFF1976D2)
     val Background = Color(0xFF000000)
     val White = Color(0xFFFFFFFF)
-    val TransparentWhite = Color(0x99AAAAAA)
+    val TransparentWhite = Color(0xB3929292)
     val Transparent = Color(0x00FFFFFF)
     val BorderColor = Color(0x55545429)
     val LightGray = Color(0xFF8B8B8B)

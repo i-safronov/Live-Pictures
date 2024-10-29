@@ -5,18 +5,15 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -27,26 +24,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
 import com.safronov.livepictures.R
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
@@ -85,7 +74,7 @@ fun CanvasScreen(
     onInstruments: () -> Unit = {},
 ) {
     var pathColor by remember { mutableStateOf(Colors.Blue) }
-    var isShowingPickColor by remember { mutableStateOf(false) }
+    var isShowingColorPalette by remember { mutableStateOf(false) }
     var bottomBarSize by remember { mutableStateOf(IntSize.Zero) }
 
     Box(
@@ -119,8 +108,7 @@ fun CanvasScreen(
                             .align(Alignment.BottomCenter)
                             .onGloballyPositioned { layoutCoordinates ->
                                 bottomBarSize = layoutCoordinates.size
-                            }
-                        ,
+                            },
                         penValue = penValue,
                         onPen = onPen,
                         brushValue = brushValue,
@@ -134,8 +122,9 @@ fun CanvasScreen(
                             enableColor = pathColor,
                             disableColor = pathColor
                         ),
+                        isShowingColorPalette = isShowingColorPalette,
                         onColor = {
-                            isShowingPickColor = !isShowingPickColor
+                            isShowingColorPalette = !isShowingColorPalette
                         }
                     )
                 }
@@ -195,7 +184,7 @@ fun CanvasScreen(
             }
         }
 
-        if (isShowingPickColor) {
+        if (isShowingColorPalette) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -234,7 +223,7 @@ fun CanvasScreen(
                         IconButton(
                             onClick = {
                                 pathColor = color
-                                isShowingPickColor = false
+                                isShowingColorPalette = false
                             }
                         ) {
                             Box(
@@ -266,6 +255,7 @@ private fun BottomBar(
     instrumentsValue: ColorValue,
     onInstruments: () -> Unit,
     colorValue: ColorValue,
+    isShowingColorPalette: Boolean,
     onColor: () -> Unit
 ) {
     Row(
@@ -331,6 +321,7 @@ private fun BottomBar(
         }
 
         IconButton(
+            modifier = Modifier,
             enabled = colorValue.enabled,
             onClick = onColor,
         ) {
@@ -338,6 +329,17 @@ private fun BottomBar(
                 modifier = Modifier
                     .clip(RoundedCornerShape(percent = 100))
                     .size(28.dp)
+                    .run {
+                        if (isShowingColorPalette) {
+                            border(
+                                width = 1.5.dp,
+                                color = Colors.Active,
+                                shape = RoundedCornerShape(percent = 100)
+                            )
+                        } else {
+                            this
+                        }
+                    }
                     .background(
                         color = colorValue.colorByState(),
                         shape = RoundedCornerShape(percent = 100)
