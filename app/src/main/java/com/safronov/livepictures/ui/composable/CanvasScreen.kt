@@ -1,12 +1,15 @@
 package com.safronov.livepictures.ui.composable
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,8 +24,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
@@ -33,15 +38,25 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
 import com.safronov.livepictures.R
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
+
+val mainColors = listOf(
+    Colors.White,
+    Colors.Orange,
+    Colors.Gray,
+    Colors.Blue
+)
 
 @Composable
 fun CanvasScreen(
@@ -68,96 +83,172 @@ fun CanvasScreen(
     onErase: () -> Unit = {},
     instrumentsValue: ColorValue,
     onInstruments: () -> Unit = {},
-    colorValue: ColorValue,
-    onColor: () -> Unit = {}
 ) {
-    Scaffold(
+    var pathColor by remember { mutableStateOf(Colors.Blue) }
+    var isShowingPickColor by remember { mutableStateOf(false) }
+    var bottomBarSize by remember { mutableStateOf(IntSize.Zero) }
+
+    Box(
         modifier = modifier
             .background(Colors.Background)
-            .fillMaxSize(),
-        topBar = {
-            TopBar(
-                prevActionValue = prevActionValue,
-                onPrevAction = onPrevAction,
-                nextActionValue = nextActionValue,
-                onNextAction = onNextAction,
-                deleteFrameValue = deleteFrameValue,
-                onDeleteFrame = onDeleteFrame,
-                addFrameValue = addFrameValue,
-                onAddFrame = onAddFrame,
-                listOfFramesValue = listOfFramesValue,
-                onListOfFrames = onListOfFrames,
-                stopAnimationValue = stopAnimationValue,
-                onStopAnimationValue = onStopAnimationValue,
-                startAnimationValue = startAnimationValue,
-                onStartAnimationValue = onStartAnimationValue
-            )
-        },
-        bottomBar = {
-            BottomBar(
-                penValue,
-                onPen,
-                brushValue,
-                onBrush,
-                eraseValue,
-                onErase,
-                instrumentsValue,
-                onInstruments,
-                colorValue,
-                onColor
-            )
-        }
-    ) { innerPadding ->
-        val image = ImageBitmap.imageResource(id = R.drawable.ic_canvas)
-        val linePath = remember { mutableStateOf(Path()) }
-        val tempPath = Path()
-
-        Box(
-            modifier = Modifier
-                .background(Colors.Background)
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(
-                    end = 16.dp,
-                    start = 16.dp,
-                    top = 32.dp,
-                    bottom = 32.dp
+            .fillMaxSize()
+    ) {
+        Scaffold(
+            topBar = {
+                TopBar(
+                    prevActionValue = prevActionValue,
+                    onPrevAction = onPrevAction,
+                    nextActionValue = nextActionValue,
+                    onNextAction = onNextAction,
+                    deleteFrameValue = deleteFrameValue,
+                    onDeleteFrame = onDeleteFrame,
+                    addFrameValue = addFrameValue,
+                    onAddFrame = onAddFrame,
+                    listOfFramesValue = listOfFramesValue,
+                    onListOfFrames = onListOfFrames,
+                    stopAnimationValue = stopAnimationValue,
+                    onStopAnimationValue = onStopAnimationValue,
+                    startAnimationValue = startAnimationValue,
+                    onStartAnimationValue = onStartAnimationValue
                 )
-                .clip(RoundedCornerShape(size = 20.dp))
-        ) {
-            Image(
-                modifier = Modifier.fillMaxSize(),
-                bitmap = image,
-                contentDescription = "Background Image",
-                contentScale = ContentScale.Crop,
-            )
+            },
+            bottomBar = {
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    BottomBar(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .onGloballyPositioned { layoutCoordinates ->
+                                bottomBarSize = layoutCoordinates.size
+                            }
+                        ,
+                        penValue = penValue,
+                        onPen = onPen,
+                        brushValue = brushValue,
+                        onBrush = onBrush,
+                        eraseValue = eraseValue,
+                        onErase = onErase,
+                        instrumentsValue = instrumentsValue,
+                        onInstruments = onInstruments,
+                        colorValue = ColorValue(
+                            enabled = true,
+                            enableColor = pathColor,
+                            disableColor = pathColor
+                        ),
+                        onColor = {
+                            isShowingPickColor = !isShowingPickColor
+                        }
+                    )
+                }
+            }
+        ) { innerPadding ->
+            val image = ImageBitmap.imageResource(id = R.drawable.ic_canvas)
+            val linePath = remember { mutableStateOf(Path()) }
+            val tempPath = Path()
 
-            Canvas(
+            Box(
                 modifier = Modifier
+                    .background(Colors.Background)
                     .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectDragGestures { change, dragAmount ->
-                            tempPath.moveTo(
-                                x = change.position.x - dragAmount.x,
-                                y = change.position.y - dragAmount.y
-                            )
+                    .padding(innerPadding)
+                    .padding(
+                        end = 16.dp,
+                        start = 16.dp,
+                        top = 32.dp,
+                        bottom = 32.dp
+                    )
+                    .clip(RoundedCornerShape(size = 20.dp))
+            ) {
+                Image(
+                    modifier = Modifier.fillMaxSize(),
+                    bitmap = image,
+                    contentDescription = "Background Image",
+                    contentScale = ContentScale.Crop,
+                )
 
-                            tempPath.lineTo(
-                                x = change.position.x,
-                                y = change.position.y
-                            )
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
+                            detectDragGestures { change, dragAmount ->
+                                tempPath.moveTo(
+                                    x = change.position.x - dragAmount.x,
+                                    y = change.position.y - dragAmount.y
+                                )
 
-                            linePath.value = Path().apply {
-                                addPath(tempPath)
+                                tempPath.lineTo(
+                                    x = change.position.x,
+                                    y = change.position.y
+                                )
+
+                                linePath.value = Path().apply {
+                                    addPath(tempPath)
+                                }
                             }
                         }
-                    }
+                ) {
+                    drawPath(
+                        path = linePath.value,
+                        color = pathColor,
+                        style = Stroke(5f)
+                    )
+                }
+            }
+        }
+
+        if (isShowingPickColor) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .animateContentSize()
             ) {
-                drawPath(
-                    path = linePath.value,
-                    color = Colors.Blue,
-                    style = Stroke(5f)
-                )
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 74.dp)
+                        .clip(RoundedCornerShape(size = 4.dp))
+                        .border(
+                            width = 1.dp,
+                            color = Colors.BorderColor,
+                            shape = RoundedCornerShape(size = 4.dp)
+                        )
+                        .background(Colors.TransparentWhite)
+                        .padding(
+                            16.dp
+                        ),
+                ) {
+                    IconButton(
+                        onClick = {
+                            //TODO implement
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .size(32.dp),
+                            painter = painterResource(R.drawable.ic_color_palette),
+                            contentDescription = "A color palette",
+                            tint = Colors.White,
+                        )
+                    }
+
+                    mainColors.forEach { color ->
+                        IconButton(
+                            onClick = {
+                                pathColor = color
+                                isShowingPickColor = false
+                            }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(percent = 100))
+                                    .size(28.dp)
+                                    .background(
+                                        color = color,
+                                        shape = RoundedCornerShape(percent = 100)
+                                    )
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -165,6 +256,7 @@ fun CanvasScreen(
 
 @Composable
 private fun BottomBar(
+    modifier: Modifier = Modifier,
     penValue: ColorValue,
     onPen: () -> Unit,
     brushValue: ColorValue,
@@ -177,7 +269,7 @@ private fun BottomBar(
     onColor: () -> Unit
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(Colors.Background)
             .padding(
@@ -410,12 +502,10 @@ fun CanvasScreenPreview() {
             penValue = ColorValue(enabled = true),
             brushValue = ColorValue(enabled = true),
             eraseValue = ColorValue(enabled = true),
-            colorValue = ColorValue(enabled = true, enableColor = Colors.Blue),
             onPen = {},
             onBrush = {},
             onErase = {},
             onInstruments = {},
-            onColor = {},
             instrumentsValue = ColorValue(enabled = true)
         )
     }
