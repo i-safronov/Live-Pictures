@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -56,4 +57,13 @@ fun SetStatusBarColor(statusBar: Color, navigationBar: Color) {
         systemUiController.setStatusBarColor(statusBar)
         systemUiController.setNavigationBarColor(navigationBar)
     }
+}
+
+@Stable
+data class ColorValue(
+    val enabled: Boolean,
+    val enableColor: Color,
+    val disableColor: Color
+) {
+    fun colorByState() = if (enabled) enableColor else disableColor
 }
