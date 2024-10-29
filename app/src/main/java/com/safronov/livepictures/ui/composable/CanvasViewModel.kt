@@ -17,7 +17,8 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                 newPaths.addAll(
                     state.paths.map { it: PathData ->
                         it.copy(
-                            color = it.color.copy(alpha = 0.1f),
+                            color = it.color,
+                            alpha = .5f
                         )
                     }
                 )
@@ -47,7 +48,8 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                             it.frameId <= prevFrame
                         }.map {
                             it.copy(
-                                color = it.color.copy(alpha = 1f)
+                                color = it.color,
+                                alpha = 1f
                             )
                         }
                     )
