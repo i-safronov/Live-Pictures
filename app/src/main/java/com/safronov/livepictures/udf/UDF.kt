@@ -1,4 +1,4 @@
-package com.safronov.apex.udf
+package com.safronov.livepictures.udf
 
 interface UDF {
 
