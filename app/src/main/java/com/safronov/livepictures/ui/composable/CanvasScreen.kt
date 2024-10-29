@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -17,13 +18,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.res.imageResource
@@ -101,6 +109,8 @@ fun CanvasScreen(
         }
     ) { innerPadding ->
         val image = ImageBitmap.imageResource(id = R.drawable.ic_canvas)
+        val linePath = remember { mutableStateOf(Path()) }
+        val tempPath = Path()
 
         Box(
             modifier = Modifier
@@ -125,8 +135,29 @@ fun CanvasScreen(
             Canvas(
                 modifier = Modifier
                     .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectDragGestures { change, dragAmount ->
+                            tempPath.moveTo(
+                                x = change.position.x - dragAmount.x,
+                                y = change.position.y - dragAmount.y
+                            )
+
+                            tempPath.lineTo(
+                                x = change.position.x,
+                                y = change.position.y
+                            )
+
+                            linePath.value = Path().apply {
+                                addPath(tempPath)
+                            }
+                        }
+                    }
             ) {
-                //TODO implement
+                drawPath(
+                    path = linePath.value,
+                    color = Colors.Blue,
+                    style = Stroke(5f)
+                )
             }
         }
     }
