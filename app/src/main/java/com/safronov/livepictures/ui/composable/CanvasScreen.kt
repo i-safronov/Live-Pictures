@@ -59,9 +59,9 @@ data class PathData(
 )
 
 val mainColors = listOf(
-    Colors.White,
+    Colors.Green,
     Colors.Orange,
-    Colors.Gray,
+    Colors.Yellow,
     Colors.Blue
 )
 
