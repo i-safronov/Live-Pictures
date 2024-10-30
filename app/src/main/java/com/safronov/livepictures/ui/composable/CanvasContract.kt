@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import com.safronov.livepictures.udf.UDF
 import com.safronov.livepictures.ui.theme.ColorValue
+import com.safronov.livepictures.ui.theme.Colors
 
 class CanvasContract {
 
@@ -16,7 +17,7 @@ class CanvasContract {
         val listOfFramesValue: ColorValue = ColorValue(enabled = true),
         val stopAnimationValue: ColorValue = ColorValue(enabled = true),
         val startAnimationValue: ColorValue = ColorValue(enabled = true),
-        val penValue: ColorValue = ColorValue(enabled = true),
+        val penValue: ColorValue = ColorValue(enabled = true, isActive = true),
         val brushValue: ColorValue = ColorValue(enabled = true),
         val eraseValue: ColorValue = ColorValue(enabled = true),
         val instrumentsValue: ColorValue = ColorValue(enabled = true),

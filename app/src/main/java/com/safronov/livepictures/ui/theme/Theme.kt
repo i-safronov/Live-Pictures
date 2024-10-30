@@ -61,9 +61,11 @@ fun SetStatusBarColor(statusBar: Color, navigationBar: Color) {
 
 @Stable
 data class ColorValue(
-    val enabled: Boolean,
+    val enabled: Boolean = true,
     val enableColor: Color = Colors.White,
-    val disableColor: Color = Colors.LightGray
+    val disableColor: Color = Colors.LightGray,
+    val isActive: Boolean = false,
+    val activeColor: Color = Colors.Active
 ) {
-    fun colorByState() = if (enabled) enableColor else disableColor
+    fun colorByState() = if (isActive) activeColor else if (enabled) enableColor else disableColor
 }
