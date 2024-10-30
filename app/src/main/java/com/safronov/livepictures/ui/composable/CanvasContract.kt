@@ -1,6 +1,8 @@
 package com.safronov.livepictures.ui.composable
 
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import com.safronov.livepictures.udf.UDF
@@ -22,9 +24,16 @@ class CanvasContract {
         val instrumentsValue: ColorValue = ColorValue(enabled = false),
         val activePaths: SnapshotStateList<PathData> = SnapshotStateList(),
         val disablePaths: SnapshotStateList<PathData> = SnapshotStateList(),
+        val erasesPaths: SnapshotStateList<PathData> = SnapshotStateList(),
         val isShowingColorPalette: Boolean = false,
-        val currentFrameId: Int = 0
-    ): UDF.State
+        val currentFrameId: Int = 0,
+        val userAction: UserAction = UserAction.PEN,
+    ): UDF.State {
+        @Stable
+        enum class UserAction {
+            PEN, ERASE
+        }
+    }
 
     sealed interface Executor: UDF.Executor {
         data object OnAddFrame: Executor
@@ -32,7 +41,10 @@ class CanvasContract {
         data object OnChangeColorPaletteState: Executor
         data class AddPath(
             val path: Path,
-            val color: Color
+            val color: Color,
+        ): Executor
+        data class ChangeUserAction(
+            val userAction: State.UserAction
         ): Executor
     }
 

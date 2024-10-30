@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.safronov.livepictures.R
 import com.safronov.livepictures.ui.composable.CanvasContract.Executor
 import com.safronov.livepictures.ui.composable.CanvasContract.State
+import com.safronov.livepictures.ui.composable.CanvasContract.State.UserAction
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
 import kotlinx.coroutines.delay
@@ -127,7 +128,7 @@ fun CanvasScreen(
                             },
                         penValue = state.penValue,
                         onPen = {
-                            //TODO
+                            dispatch(Executor.ChangeUserAction(UserAction.PEN))
                         },
                         brushValue = state.brushValue,
                         onBrush = {
@@ -135,7 +136,7 @@ fun CanvasScreen(
                         },
                         eraseValue = state.eraseValue,
                         onErase = {
-                            //TODO
+                            dispatch(Executor.ChangeUserAction(UserAction.ERASE))
                         },
                         instrumentsValue = state.instrumentsValue,
                         onInstruments = {
@@ -147,6 +148,7 @@ fun CanvasScreen(
                             disableColor = pathColor
                         ),
                         isShowingColorPalette = isShowingColorPalette,
+                        userAction = state.userAction,
                         onColor = {
                             isShowingColorPalette = !isShowingColorPalette
                         }
@@ -202,10 +204,12 @@ fun CanvasScreen(
                                     path = tempPath
                                 },
                                 onDragEnd = {
-                                    dispatch(Executor.AddPath(
-                                        path = tempPath,
-                                        color = pathColor,
-                                    ))
+                                    dispatch(
+                                        Executor.AddPath(
+                                            path = tempPath,
+                                            color = pathColor,
+                                        )
+                                    )
 
                                     scope.launch {
                                         delay(100)
@@ -238,9 +242,14 @@ fun CanvasScreen(
                             style = Stroke(8f),
                         )
                     }
+
                     drawPath(
                         path = path,
-                        color = pathColor,
+                        color = if (state.userAction == UserAction.PEN) {
+                            pathColor
+                        } else {
+                            Colors.Transparent
+                        },
                         style = Stroke(8f)
                     )
                 }
@@ -319,6 +328,7 @@ private fun BottomBar(
     onInstruments: () -> Unit,
     colorValue: ColorValue,
     isShowingColorPalette: Boolean,
+    userAction: UserAction,
     onColor: () -> Unit
 ) {
     Row(
@@ -340,7 +350,7 @@ private fun BottomBar(
                     .size(32.dp),
                 painter = painterResource(R.drawable.ic_pen),
                 contentDescription = "A pen",
-                tint = penValue.colorByState(),
+                tint = penValue.copy(isActive = userAction == UserAction.PEN).colorByState(),
             )
         }
 
@@ -366,7 +376,7 @@ private fun BottomBar(
                     .size(32.dp),
                 painter = painterResource(R.drawable.ic_erase),
                 contentDescription = "Erase",
-                tint = eraseValue.colorByState(),
+                tint = penValue.copy(isActive = userAction == UserAction.ERASE).colorByState(),
             )
         }
 

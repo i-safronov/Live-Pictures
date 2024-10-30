@@ -5,6 +5,7 @@ import com.safronov.livepictures.udf.EffectorScope
 import com.safronov.livepictures.udf.ExecutorScope
 import com.safronov.livepictures.udf.UDFViewModel
 import com.safronov.livepictures.ui.composable.CanvasContract.*
+import com.safronov.livepictures.ui.composable.CanvasContract.State.UserAction.*
 import com.safronov.livepictures.ui.theme.ColorValue
 
 class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
@@ -55,14 +56,30 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
             }
 
             is Executor.AddPath -> {
-                state.activePaths.add(
-                    PathData(
-                        path = ex.path,
-                        color = ex.color,
-                        frameId = state.currentFrameId
+                if (state.userAction == PEN) {
+                    state.activePaths.add(
+                        PathData(
+                            path = ex.path,
+                            color = ex.color,
+                            frameId = state.currentFrameId,
+                        )
                     )
-                )
+                } else {
+                    state.erasesPaths.add(
+                        PathData(
+                            path = ex.path,
+                            color = ex.color,
+                            frameId = state.currentFrameId,
+                        )
+                    )
+                }
                 state.copy()
+            }
+
+            is Executor.ChangeUserAction -> {
+                state.copy(
+                    userAction = ex.userAction
+                )
             }
         }
 
