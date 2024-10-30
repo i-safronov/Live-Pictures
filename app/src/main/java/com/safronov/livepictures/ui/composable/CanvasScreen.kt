@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -160,98 +161,108 @@ fun CanvasScreen(
             var tempPath = Path()
             var path by remember { mutableStateOf(Path()) }
 
-            Box(
-                modifier = Modifier
-                    .background(Colors.Background)
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(16.dp)
-                    .clip(RoundedCornerShape(size = 20.dp))
+            Column(
+                modifier = Modifier.background(Colors.Background)
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp)
+                .clip(RoundedCornerShape(size = 20.dp))
             ) {
-                Image(
-                    modifier = Modifier.fillMaxSize(),
-                    bitmap = image,
-                    contentDescription = "Background Image",
-                    contentScale = ContentScale.Crop,
-                )
-
-                val activePaths = state.activePaths
-                val disablePaths = state.disablePaths
-
-                Canvas(
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .alpha(alpha = .3f)
+                        .background(Colors.White)
                 ) {
-                    disablePaths.forEach { pathData ->
-                        drawPath(
-                            path = pathData.path,
-                            color = pathData.color,
-                            style = Stroke(8f),
-                        )
-                    }
-                }
+                    val activePaths = state.activePaths
+                    val disablePaths = state.disablePaths
+                    val erasesPaths = state.erasesPaths
 
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .pointerInput(Unit) {
-                            detectDragGestures(
-                                onDragStart = { offset ->
-                                    tempPath = Path().apply {
-                                        moveTo(offset.x, offset.y)
-                                    }
-                                    path = tempPath
-                                },
-                                onDragEnd = {
-                                    dispatch(
-                                        Executor.AddPath(
-                                            path = tempPath,
-                                            color = pathColor,
-                                        )
-                                    )
-
-                                    scope.launch {
-                                        delay(100)
-                                        path = Path()
-                                        tempPath = path
-                                    }
-                                },
-                                onDrag = { change, dragAmount ->
-                                    tempPath.moveTo(
-                                        x = change.position.x - dragAmount.x,
-                                        y = change.position.y - dragAmount.y
-                                    )
-
-                                    tempPath.lineTo(
-                                        x = change.position.x,
-                                        y = change.position.y
-                                    )
-
-                                    path = Path().apply {
-                                        addPath(tempPath)
-                                    }
-                                }
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .alpha(alpha = .3f)
+                    ) {
+                        disablePaths.forEach { pathData ->
+                            drawPath(
+                                path = pathData.path,
+                                color = pathData.color,
+                                style = Stroke(10f),
                             )
                         }
-                ) {
-                    activePaths.forEach { pathData ->
-                        drawPath(
-                            path = pathData.path,
-                            color = pathData.color,
-                            style = Stroke(8f),
-                        )
                     }
 
-                    drawPath(
-                        path = path,
-                        color = if (state.userAction == UserAction.PEN) {
-                            pathColor
-                        } else {
-                            Colors.Transparent
-                        },
-                        style = Stroke(8f)
-                    )
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectDragGestures(
+                                    onDragStart = { offset ->
+                                        tempPath = Path().apply {
+                                            moveTo(offset.x, offset.y)
+                                        }
+                                        path = tempPath
+                                    },
+                                    onDragEnd = {
+                                        dispatch(
+                                            Executor.AddPath(
+                                                path = tempPath,
+                                                color = pathColor,
+                                            )
+                                        )
+
+                                        scope.launch {
+                                            delay(100)
+                                            path = Path()
+                                            tempPath = path
+                                        }
+                                    },
+                                    onDrag = { change, dragAmount ->
+                                        tempPath.moveTo(
+                                            x = change.position.x - dragAmount.x,
+                                            y = change.position.y - dragAmount.y
+                                        )
+
+                                        tempPath.lineTo(
+                                            x = change.position.x,
+                                            y = change.position.y
+                                        )
+
+                                        path = Path().apply {
+                                            addPath(tempPath)
+                                        }
+                                    }
+                                )
+                            }
+                    ) {
+                        activePaths.forEach { pathData ->
+                            drawPath(
+                                path = pathData.path,
+                                color = pathData.color,
+                                style = Stroke(10f),
+                            )
+                        }
+
+                        erasesPaths.forEach { pathData ->
+                            drawPath(
+                                path = pathData.path,
+                                color = pathData.color,
+                                style = Stroke(12f),
+                            )
+                        }
+
+                        drawPath(
+                            path = path,
+                            color = if (state.userAction == UserAction.PEN) {
+                                pathColor
+                            } else {
+                                Colors.White
+                            },
+                            style = Stroke(if (state.userAction == UserAction.PEN) {
+                                10f
+                            } else {
+                                12f
+                            })
+                        )
+                    }
                 }
             }
         }

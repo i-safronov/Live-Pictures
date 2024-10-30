@@ -7,6 +7,7 @@ import com.safronov.livepictures.udf.UDFViewModel
 import com.safronov.livepictures.ui.composable.CanvasContract.*
 import com.safronov.livepictures.ui.composable.CanvasContract.State.UserAction.*
 import com.safronov.livepictures.ui.theme.ColorValue
+import com.safronov.livepictures.ui.theme.Colors
 
 class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
     initState = State()
@@ -68,7 +69,7 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                     state.erasesPaths.add(
                         PathData(
                             path = ex.path,
-                            color = ex.color,
+                            color = Colors.White,
                             frameId = state.currentFrameId,
                         )
                     )
