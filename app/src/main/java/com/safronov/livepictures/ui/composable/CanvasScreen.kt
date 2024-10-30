@@ -76,7 +76,7 @@ fun CanvasScreen(
             .background(Colors.Background)
             .padding(
                 top = 20.dp,
-                bottom = 20.dp
+                bottom = 16.dp
             )
             .fillMaxSize()
     ) {
@@ -118,7 +118,7 @@ fun CanvasScreen(
                     BottomBar(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(bottom = 24.dp)
+                            .padding(bottom = 16.dp)
                             .onGloballyPositioned { layoutCoordinates ->
                                 bottomBarSize = layoutCoordinates.size
                             },
@@ -176,6 +176,20 @@ fun CanvasScreen(
                 Canvas(
                     modifier = Modifier
                         .fillMaxSize()
+                        .alpha(alpha = .3f)
+                ) {
+                    disablePaths.forEach { pathData ->
+                        drawPath(
+                            path = pathData.path,
+                            color = pathData.color,
+                            style = Stroke(8f),
+                        )
+                    }
+                }
+
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
                         .pointerInput(Unit) {
                             detectDragGestures(
                                 onDragStart = { offset ->
@@ -223,20 +237,6 @@ fun CanvasScreen(
                         color = pathColor,
                         style = Stroke(8f)
                     )
-                }
-
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .alpha(alpha = .3f)
-                ) {
-                    disablePaths.forEach { pathData ->
-                        drawPath(
-                            path = pathData.path,
-                            color = pathData.color,
-                            style = Stroke(8f),
-                        )
-                    }
                 }
             }
         }
