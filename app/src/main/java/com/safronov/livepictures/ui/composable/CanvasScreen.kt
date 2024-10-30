@@ -27,11 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -41,7 +41,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.safronov.livepictures.R
-import com.safronov.livepictures.ui.composable.CanvasContract.*
+import com.safronov.livepictures.ui.composable.CanvasContract.Executor
+import com.safronov.livepictures.ui.composable.CanvasContract.State
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
 
@@ -151,18 +152,14 @@ fun CanvasScreen(
         ) { innerPadding ->
             val image = ImageBitmap.imageResource(id = R.drawable.ic_canvas)
             var tempPath = Path()
+            var path by remember { mutableStateOf(Path()) }
 
             Box(
                 modifier = Modifier
                     .background(Colors.Background)
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(
-                        end = 16.dp,
-                        start = 16.dp,
-                        top = 32.dp,
-                        bottom = 32.dp
-                    )
+                    .padding(16.dp)
                     .clip(RoundedCornerShape(size = 20.dp))
             ) {
                 Image(
@@ -172,81 +169,59 @@ fun CanvasScreen(
                     contentScale = ContentScale.Crop,
                 )
 
-                //TODO refactor
                 val activePaths = paths.filter { it.frameId == state.currentFrameId }
-                val prevPaths = paths.filter { it.frameId != state.currentFrameId }
 
                 Canvas(
                     modifier = Modifier
                         .fillMaxSize()
                         .pointerInput(Unit) {
                             detectDragGestures(
-                                onDragStart = {
-                                    tempPath = Path()
+                                onDragStart = { offset ->
+                                    tempPath = Path().apply {
+                                        moveTo(offset.x, offset.y)
+                                    }
+                                    path = tempPath
+                                },
+                                onDragEnd = {
+                                    paths.add(
+                                        PathData(
+                                            path = tempPath,
+                                            color = pathColor,
+                                            frameId = state.currentFrameId
+                                        )
+                                    )
+
+                                    path = Path()
+                                    tempPath = path
+                                },
+                                onDrag = { change, dragAmount ->
+                                    tempPath.moveTo(
+                                        x = change.position.x - dragAmount.x,
+                                        y = change.position.y - dragAmount.y
+                                    )
+
+                                    tempPath.lineTo(
+                                        x = change.position.x,
+                                        y = change.position.y
+                                    )
+
+                                    path = Path().apply {
+                                        addPath(tempPath)
+                                    }
                                 }
-                            ) { change, dragAmount ->
-                                tempPath.moveTo(
-                                    x = change.position.x - dragAmount.x,
-                                    y = change.position.y - dragAmount.y
-                                )
-
-                                tempPath.lineTo(
-                                    x = change.position.x,
-                                    y = change.position.y
-                                )
-
-                                dispatch(
-                                    Executor.AddPath(
-                                        path = tempPath,
-                                        color = pathColor,
-                                ))
-                            }
+                            )
                         }
                 ) {
-                    activePaths.forEach { path ->
+                    drawPath(
+                        path = path,
+                        color = pathColor,
+                        style = Stroke(8f)
+                    )
+                    activePaths.forEach { pathData ->
                         drawPath(
-                            path = path.path,
-                            color = path.color,
+                            path = pathData.path,
+                            color = pathData.color,
                             style = Stroke(8f),
-                            alpha = .5f
-                        )
-                    }
-                }
-
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .alpha(.3f)
-                        .pointerInput(Unit) {
-                            detectDragGestures(
-                                onDragStart = {
-                                    tempPath = Path()
-                                }
-                            ) { change, dragAmount ->
-                                tempPath.moveTo(
-                                    x = change.position.x - dragAmount.x,
-                                    y = change.position.y - dragAmount.y
-                                )
-
-                                tempPath.lineTo(
-                                    x = change.position.x,
-                                    y = change.position.y
-                                )
-
-                                dispatch(
-                                    Executor.AddPath(
-                                        path = tempPath,
-                                        color = pathColor,
-                                    ))
-                            }
-                        }
-                ) {
-                    prevPaths.forEach { path ->
-                        drawPath(
-                            path = path.path,
-                            color = path.color,
-                            style = Stroke(8f),
-                            alpha = .5f
                         )
                     }
                 }
