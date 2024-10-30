@@ -211,11 +211,6 @@ fun CanvasScreen(
                             )
                         }
                 ) {
-                    drawPath(
-                        path = path,
-                        color = pathColor,
-                        style = Stroke(8f)
-                    )
                     activePaths.forEach { pathData ->
                         drawPath(
                             path = pathData.path,
@@ -223,6 +218,11 @@ fun CanvasScreen(
                             style = Stroke(8f),
                         )
                     }
+                    drawPath(
+                        path = path,
+                        color = pathColor,
+                        style = Stroke(8f)
+                    )
                 }
 
                 Canvas(
