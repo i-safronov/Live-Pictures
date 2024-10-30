@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -45,6 +46,8 @@ import com.safronov.livepictures.ui.composable.CanvasContract.Executor
 import com.safronov.livepictures.ui.composable.CanvasContract.State
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 data class PathData(
     val path: Path = Path(),
@@ -67,9 +70,9 @@ fun CanvasScreen(
     dispatch: (Executor) -> Unit
 ) {
     var pathColor by remember { mutableStateOf(Colors.Blue) }
-    val paths: SnapshotStateList<PathData> = state.paths
     var isShowingColorPalette by remember { mutableStateOf(false) }
     var bottomBarSize by remember { mutableStateOf(IntSize.Zero) }
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = modifier
@@ -170,8 +173,8 @@ fun CanvasScreen(
                     contentScale = ContentScale.Crop,
                 )
 
-                val activePaths = paths.filter { it.frameId == state.currentFrameId }
-                val disablePaths = paths.filter { it.frameId != state.currentFrameId }
+                val activePaths = state.activePaths
+                val disablePaths = state.disablePaths
 
                 Canvas(
                     modifier = Modifier
@@ -204,8 +207,11 @@ fun CanvasScreen(
                                         color = pathColor,
                                     ))
 
-                                    path = Path()
-                                    tempPath = path
+                                    scope.launch {
+                                        delay(100)
+                                        path = Path()
+                                        tempPath = path
+                                    }
                                 },
                                 onDrag = { change, dragAmount ->
                                     tempPath.moveTo(

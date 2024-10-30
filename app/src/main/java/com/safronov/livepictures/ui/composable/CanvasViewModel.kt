@@ -13,17 +13,14 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
     override suspend fun ExecutorScope<Effect>.execute(ex: Executor): State =
         when (ex) {
             Executor.OnAddFrame -> {
-                val newPaths = mutableStateListOf<PathData>()
-                newPaths.addAll(
-                    state.paths.map { it: PathData ->
-                        it.copy(
-                            color = it.color,
-                            alpha = .5f
-                        )
-                    }
+                val disablePaths = mutableStateListOf<PathData>()
+                val activePaths = mutableStateListOf<PathData>()
+                disablePaths.addAll(
+                    state.activePaths + state.disablePaths
                 )
                 state.copy(
-                    paths = newPaths,
+                    disablePaths = disablePaths,
+                    activePaths = activePaths,
                     currentFrameId = state.currentFrameId + 1,
                     deleteFrameValue = ColorValue(enabled = true)
                 )
@@ -41,14 +38,16 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                         deleteFrameValue = ColorValue(enabled = false)
                     )
                 } else {
-                    val newPaths = mutableStateListOf<PathData>()
+                    val activePaths = mutableStateListOf<PathData>()
+                    val disablePaths = mutableStateListOf<PathData>()
                     val prevFrame = state.currentFrameId - 1
-                    state.paths.removeIf {
-                        it.frameId > prevFrame
-                    }
-                    newPaths.addAll(state.paths)
+                    state.activePaths.clear()
+                    activePaths.addAll(state.disablePaths.filter { it.frameId == prevFrame })
+                    disablePaths.addAll(state.disablePaths.filter { it.frameId != prevFrame })
+
                     state.copy(
-                        paths = newPaths,
+                        activePaths = activePaths,
+                        disablePaths = disablePaths,
                         deleteFrameValue = if (prevFrame < 1) ColorValue(enabled = false) else state.deleteFrameValue,
                         currentFrameId = prevFrame
                     )
@@ -56,7 +55,7 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
             }
 
             is Executor.AddPath -> {
-                state.paths.add(
+                state.activePaths.add(
                     PathData(
                         path = ex.path,
                         color = ex.color,

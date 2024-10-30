@@ -20,7 +20,8 @@ class CanvasContract {
         val brushValue: ColorValue = ColorValue(enabled = false),
         val eraseValue: ColorValue = ColorValue(enabled = true),
         val instrumentsValue: ColorValue = ColorValue(enabled = false),
-        val paths: SnapshotStateList<PathData> = SnapshotStateList(),
+        val activePaths: SnapshotStateList<PathData> = SnapshotStateList(),
+        val disablePaths: SnapshotStateList<PathData> = SnapshotStateList(),
         val isShowingColorPalette: Boolean = false,
         val currentFrameId: Int = 0
     ): UDF.State
