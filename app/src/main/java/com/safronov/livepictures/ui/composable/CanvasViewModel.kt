@@ -43,16 +43,10 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                 } else {
                     val newPaths = mutableStateListOf<PathData>()
                     val prevFrame = state.currentFrameId - 1
-                    newPaths.addAll(
-                        state.paths.filter {
-                            it.frameId <= prevFrame
-                        }.map {
-                            it.copy(
-                                color = it.color,
-                                alpha = 1f
-                            )
-                        }
-                    )
+                    state.paths.removeIf {
+                        it.frameId > prevFrame
+                    }
+                    newPaths.addAll(state.paths)
                     state.copy(
                         paths = newPaths,
                         deleteFrameValue = if (prevFrame < 1) ColorValue(enabled = false) else state.deleteFrameValue,

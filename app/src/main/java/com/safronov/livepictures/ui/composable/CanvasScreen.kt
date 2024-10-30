@@ -118,6 +118,7 @@ fun CanvasScreen(
                     BottomBar(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
+                            .padding(bottom = 24.dp)
                             .onGloballyPositioned { layoutCoordinates ->
                                 bottomBarSize = layoutCoordinates.size
                             },
@@ -170,6 +171,7 @@ fun CanvasScreen(
                 )
 
                 val activePaths = paths.filter { it.frameId == state.currentFrameId }
+                val disablePaths = paths.filter { it.frameId != state.currentFrameId }
 
                 Canvas(
                     modifier = Modifier
@@ -183,13 +185,10 @@ fun CanvasScreen(
                                     path = tempPath
                                 },
                                 onDragEnd = {
-                                    paths.add(
-                                        PathData(
-                                            path = tempPath,
-                                            color = pathColor,
-                                            frameId = state.currentFrameId
-                                        )
-                                    )
+                                    dispatch(Executor.AddPath(
+                                        path = tempPath,
+                                        color = pathColor,
+                                    ))
 
                                     path = Path()
                                     tempPath = path
@@ -218,6 +217,20 @@ fun CanvasScreen(
                         style = Stroke(8f)
                     )
                     activePaths.forEach { pathData ->
+                        drawPath(
+                            path = pathData.path,
+                            color = pathData.color,
+                            style = Stroke(8f),
+                        )
+                    }
+                }
+
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(alpha = .3f)
+                ) {
+                    disablePaths.forEach { pathData ->
                         drawPath(
                             path = pathData.path,
                             color = pathData.color,
@@ -465,7 +478,9 @@ private fun TopBar(
 
             IconButton(
                 enabled = addFrameValue.enabled,
-                onClick = onAddFrame,
+                onClick = {
+                    onAddFrame()
+                },
             ) {
                 Icon(
                     modifier = Modifier
