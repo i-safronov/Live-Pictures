@@ -2,7 +2,6 @@ package com.safronov.livepictures.ui.composable
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -24,18 +23,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
@@ -45,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.safronov.livepictures.R
 import com.safronov.livepictures.ui.composable.CanvasContract.Executor
 import com.safronov.livepictures.ui.composable.CanvasContract.State
-import com.safronov.livepictures.ui.composable.CanvasContract.State.UserAction
+import com.safronov.livepictures.ui.composable.CanvasContract.State.UserInputType
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
 import kotlinx.coroutines.delay
@@ -129,7 +125,7 @@ fun CanvasScreen(
                             },
                         penValue = state.penValue,
                         onPen = {
-                            dispatch(Executor.ChangeUserAction(UserAction.PEN))
+                            dispatch(Executor.ChangeUserAction(UserInputType.PEN))
                         },
                         brushValue = state.brushValue,
                         onBrush = {
@@ -137,7 +133,7 @@ fun CanvasScreen(
                         },
                         eraseValue = state.eraseValue,
                         onErase = {
-                            dispatch(Executor.ChangeUserAction(UserAction.ERASE))
+                            dispatch(Executor.ChangeUserAction(UserInputType.ERASE))
                         },
                         instrumentsValue = state.instrumentsValue,
                         onInstruments = {
@@ -149,7 +145,7 @@ fun CanvasScreen(
                             disableColor = pathColor
                         ),
                         isShowingColorPalette = isShowingColorPalette,
-                        userAction = state.userAction,
+                        userInputType = state.userInputType,
                         onColor = {
                             isShowingColorPalette = !isShowingColorPalette
                         }
@@ -251,12 +247,12 @@ fun CanvasScreen(
 
                         drawPath(
                             path = path,
-                            color = if (state.userAction == UserAction.PEN) {
+                            color = if (state.userInputType == UserInputType.PEN) {
                                 pathColor
                             } else {
                                 Colors.White
                             },
-                            style = Stroke(if (state.userAction == UserAction.PEN) {
+                            style = Stroke(if (state.userInputType == UserInputType.PEN) {
                                 10f
                             } else {
                                 12f
@@ -339,7 +335,7 @@ private fun BottomBar(
     onInstruments: () -> Unit,
     colorValue: ColorValue,
     isShowingColorPalette: Boolean,
-    userAction: UserAction,
+    userInputType: UserInputType,
     onColor: () -> Unit
 ) {
     Row(
@@ -361,7 +357,7 @@ private fun BottomBar(
                     .size(32.dp),
                 painter = painterResource(R.drawable.ic_pen),
                 contentDescription = "A pen",
-                tint = penValue.copy(isActive = userAction == UserAction.PEN).colorByState(),
+                tint = penValue.copy(isActive = userInputType == UserInputType.PEN).colorByState(),
             )
         }
 
@@ -387,7 +383,7 @@ private fun BottomBar(
                     .size(32.dp),
                 painter = painterResource(R.drawable.ic_erase),
                 contentDescription = "Erase",
-                tint = penValue.copy(isActive = userAction == UserAction.ERASE).colorByState(),
+                tint = penValue.copy(isActive = userInputType == UserInputType.ERASE).colorByState(),
             )
         }
 
