@@ -5,13 +5,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import com.safronov.livepictures.udf.UDF
 import com.safronov.livepictures.ui.theme.ColorValue
-import com.safronov.livepictures.ui.theme.Colors
 
 class CanvasContract {
 
     data class State(
         val prevActionValue: ColorValue = ColorValue(enabled = false),
-        val nextActionValue: ColorValue = ColorValue(enabled = true),
+        val nextActionValue: ColorValue = ColorValue(enabled = false),
         val deleteFrameValue: ColorValue = ColorValue(enabled = false),
         val addFrameValue: ColorValue = ColorValue(enabled = true),
         val listOfFramesValue: ColorValue = ColorValue(enabled = false),
