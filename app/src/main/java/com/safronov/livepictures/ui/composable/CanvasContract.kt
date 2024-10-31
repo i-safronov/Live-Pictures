@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import com.safronov.livepictures.udf.UDF
 import com.safronov.livepictures.ui.theme.ColorValue
+import java.util.Stack
 
 class CanvasContract {
 
@@ -22,12 +23,14 @@ class CanvasContract {
         val eraseValue: ColorValue = ColorValue(enabled = true),
         val instrumentsValue: ColorValue = ColorValue(enabled = false),
         val activePaths: SnapshotStateList<PathData> = SnapshotStateList(),
-        val cachedActivePaths: SnapshotStateList<PathData> = SnapshotStateList(),
-        val disablePaths: SnapshotStateList<PathData> = SnapshotStateList(),
+        val cachedActivePaths: Stack<PathData> = Stack(),
+        val disablePaths: Stack<PathData> = Stack(),
+        val undoStack: Stack<PathData> = Stack(), // Стек для отмены
+        val redoStack: Stack<PathData> = Stack(), // Стек для повтора
         val isShowingColorPalette: Boolean = false,
         val currentFrameId: Int = 0,
         val userInputType: UserInputType = UserInputType.PEN,
-    ): UDF.State {
+    ) : UDF.State {
         @Stable
         enum class UserInputType {
             PEN, ERASE

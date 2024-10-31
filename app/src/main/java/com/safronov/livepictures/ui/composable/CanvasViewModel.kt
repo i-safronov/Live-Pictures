@@ -8,6 +8,7 @@ import com.safronov.livepictures.ui.composable.CanvasContract.*
 import com.safronov.livepictures.ui.composable.CanvasContract.State.UserInputType.*
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
+import java.util.Stack
 
 class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
     initState = State()
@@ -15,11 +16,11 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
     override suspend fun ExecutorScope<Effect>.execute(ex: Executor): State =
         when (ex) {
             Executor.OnAddFrame -> {
-                val disablePaths = mutableStateListOf<PathData>()
+                val disablePaths = Stack<PathData>().apply {
+                    addAll(state.activePaths + state.disablePaths)
+                }
                 val activePaths = mutableStateListOf<PathData>()
-                disablePaths.addAll(
-                    state.activePaths + state.disablePaths
-                )
+
                 state.copy(
                     disablePaths = disablePaths,
                     activePaths = activePaths,
@@ -41,9 +42,10 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                     )
                 } else {
                     val activePaths = mutableStateListOf<PathData>()
-                    val cachedActivePaths = mutableStateListOf<PathData>()
-                    val disablePaths = mutableStateListOf<PathData>()
+                    val cachedActivePaths = Stack<PathData>()
+                    val disablePaths = Stack<PathData>()
                     val prevFrame = state.currentFrameId - 1
+
                     state.activePaths.clear()
 
                     activePaths.addAll(state.disablePaths.filter { it.frameId == prevFrame })
@@ -61,16 +63,22 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
             }
 
             is Executor.AddPath -> {
-                val element = PathData(
-                    path = ex.path,
-                    color = if (state.userInputType == PEN) ex.color else Colors.White,
-                    frameId = state.currentFrameId,
-                )
-                state.activePaths.add(element)
-                state.cachedActivePaths.add(element)
-                state.copy(
-                    prevActionValue = ColorValue(enabled = true)
-                )
+                if (state.userInputType == State.UserInputType.ERASE && state.activePaths.isEmpty()) {
+                    state
+                } else {
+                    val element = PathData(
+                        path = ex.path,
+                        color = if (state.userInputType == State.UserInputType.PEN) ex.color else Colors.White,
+                        frameId = state.currentFrameId
+                    )
+
+                    state.activePaths.add(element)
+                    state.cachedActivePaths.add(index = state.activePaths.size - 1, element)
+
+                    state.copy(
+                        prevActionValue = ColorValue(enabled = true)
+                    )
+                }
             }
 
             is Executor.ChangeUserAction -> {
@@ -80,12 +88,15 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
             }
 
             Executor.NextAction -> {
-                val enableNextAction = state.activePaths.size < state.cachedActivePaths.size
-                if (state.nextActionValue.enabled && enableNextAction) {
-                    state.activePaths.add(state.cachedActivePaths[state.activePaths.size])
+                if (state.redoStack.isNotEmpty()) {
+                    val pathToRedo = state.redoStack.pop()
+                    state.activePaths.add(pathToRedo)
+
+                    state.undoStack.push(pathToRedo)
+
                     state.copy(
                         nextActionValue = ColorValue(
-                            enabled = state.activePaths.size < state.cachedActivePaths.size
+                            enabled = state.redoStack.isNotEmpty()
                         ),
                         prevActionValue = ColorValue(
                             enabled = true
@@ -97,24 +108,27 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
             }
 
             Executor.PrevAction -> {
-                if (state.activePaths.size >= 1) {
-                    state.activePaths.removeLastOrNull()
+                if (state.activePaths.isNotEmpty()) {
+                    val pathToUndo = state.activePaths.removeLastOrNull()
+                    if (pathToUndo != null) {
+                        state.redoStack.push(pathToUndo)
+                    }
+
                     state.copy(
                         nextActionValue = ColorValue(
-                            enabled = true
+                            enabled = state.redoStack.isNotEmpty()
                         ),
                         prevActionValue = ColorValue(
-                            enabled = state.activePaths.size >= 1
+                            enabled = state.activePaths.isNotEmpty()
                         )
                     )
                 } else {
                     state.copy(
-                        prevActionValue = ColorValue(
-                            enabled = state.activePaths.size >= 1
-                        )
+                        prevActionValue = ColorValue(enabled = false)
                     )
                 }
             }
+
         }
 
     override suspend fun EffectorScope<Executor>.affect(ef: Effect) {
