@@ -22,6 +22,7 @@ class CanvasContract {
         val eraseValue: ColorValue = ColorValue(enabled = true),
         val instrumentsValue: ColorValue = ColorValue(enabled = false),
         val activePaths: SnapshotStateList<PathData> = SnapshotStateList(),
+        val cachedActivePaths: SnapshotStateList<PathData> = SnapshotStateList(),
         val disablePaths: SnapshotStateList<PathData> = SnapshotStateList(),
         val isShowingColorPalette: Boolean = false,
         val currentFrameId: Int = 0,
@@ -44,6 +45,8 @@ class CanvasContract {
         data class ChangeUserAction(
             val userInputType: State.UserInputType
         ): Executor
+        data object PrevAction: Executor
+        data object NextAction: Executor
     }
 
     sealed interface Event: UDF.Event

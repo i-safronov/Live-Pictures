@@ -86,11 +86,11 @@ fun CanvasScreen(
                 TopBar(
                     prevActionValue = state.prevActionValue,
                     onPrevAction = {
-                        //TODO
+                        dispatch(Executor.PrevAction)
                     },
                     nextActionValue = state.nextActionValue,
                     onNextAction = {
-                        //TODO
+                        dispatch(Executor.NextAction)
                     },
                     deleteFrameValue = state.deleteFrameValue,
                     onDeleteFrame = {
