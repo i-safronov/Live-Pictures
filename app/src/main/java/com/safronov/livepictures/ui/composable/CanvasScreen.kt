@@ -173,20 +173,6 @@ fun CanvasScreen(
                     Canvas(
                         modifier = Modifier
                             .fillMaxSize()
-                            .alpha(alpha = .3f)
-                    ) {
-                        disablePaths.forEach { pathData ->
-                            drawPath(
-                                path = pathData.path,
-                                color = pathData.color,
-                                style = Stroke(10f),
-                            )
-                        }
-                    }
-
-                    Canvas(
-                        modifier = Modifier
-                            .fillMaxSize()
                             .pointerInput(Unit) {
                                 detectDragGestures(
                                     onDragStart = { offset ->
@@ -244,6 +230,20 @@ fun CanvasScreen(
                             },
                             style = Stroke(14f)
                         )
+                    }
+
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .alpha(alpha = .3f)
+                    ) {
+                        disablePaths.forEach { pathData ->
+                            drawPath(
+                                path = pathData.path,
+                                color = pathData.color,
+                                style = Stroke(10f),
+                            )
+                        }
                     }
                 }
             }

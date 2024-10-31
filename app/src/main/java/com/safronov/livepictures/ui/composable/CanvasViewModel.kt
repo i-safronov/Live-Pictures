@@ -5,7 +5,6 @@ import com.safronov.livepictures.udf.EffectorScope
 import com.safronov.livepictures.udf.ExecutorScope
 import com.safronov.livepictures.udf.UDFViewModel
 import com.safronov.livepictures.ui.composable.CanvasContract.*
-import com.safronov.livepictures.ui.composable.CanvasContract.State.UserInputType.*
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
 import java.util.Stack
