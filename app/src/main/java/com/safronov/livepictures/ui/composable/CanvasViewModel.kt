@@ -24,7 +24,10 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                     disablePaths = disablePaths,
                     activePaths = activePaths,
                     currentFrameId = state.currentFrameId + 1,
-                    deleteFrameValue = ColorValue(enabled = true)
+                    deleteFrameValue = ColorValue(enabled = true),
+                    prevActionValue = ColorValue(enabled = false),
+                    nextActionValue = ColorValue(enabled = false),
+                    startAnimationValue = ColorValue(enabled = state.activePaths.isNotEmpty() || state.disablePaths.isNotEmpty())
                 )
             }
 
@@ -75,7 +78,8 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                     state.cachedActivePaths.add(index = state.activePaths.size - 1, element)
 
                     state.copy(
-                        prevActionValue = ColorValue(enabled = true)
+                        prevActionValue = ColorValue(enabled = true),
+                        startAnimationValue = ColorValue(enabled = true)
                     )
                 }
             }
@@ -99,7 +103,8 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                         ),
                         prevActionValue = ColorValue(
                             enabled = true
-                        )
+                        ),
+                        startAnimationValue = ColorValue(enabled = true)
                     )
                 } else {
                     state
@@ -119,15 +124,36 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                         ),
                         prevActionValue = ColorValue(
                             enabled = state.activePaths.isNotEmpty()
+                        ),
+                        startAnimationValue = ColorValue(
+                            enabled = state.activePaths.isNotEmpty() || state.disablePaths.isNotEmpty()
                         )
                     )
                 } else {
                     state.copy(
-                        prevActionValue = ColorValue(enabled = false)
+                        prevActionValue = ColorValue(enabled = false),
+                        startAnimationValue = ColorValue(enabled = false)
                     )
                 }
             }
 
+            Executor.Animate -> {
+                val reversedPaths = state.activePaths.reversed()
+                val groupByFrame = reversedPaths.groupBy { it.frameId }
+                val animation = mutableListOf<PathData>()
+
+                for (i in 0..state.currentFrameId) {
+                    animation.addAll(
+                        groupByFrame.getOrElse(key = i, defaultValue = {
+                            emptyList()
+                        })
+                    )
+                }
+
+                state.copy(
+                    animation = animation
+                )
+            }
         }
 
     override suspend fun EffectorScope<Executor>.affect(ef: Effect) {

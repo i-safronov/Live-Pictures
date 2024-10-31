@@ -17,7 +17,7 @@ class CanvasContract {
         val addFrameValue: ColorValue = ColorValue(enabled = true),
         val listOfFramesValue: ColorValue = ColorValue(enabled = false),
         val stopAnimationValue: ColorValue = ColorValue(enabled = false),
-        val startAnimationValue: ColorValue = ColorValue(enabled = true),
+        val startAnimationValue: ColorValue = ColorValue(enabled = false),
         val penValue: ColorValue = ColorValue(enabled = true, isActive = true),
         val brushValue: ColorValue = ColorValue(enabled = false),
         val eraseValue: ColorValue = ColorValue(enabled = true),
@@ -25,11 +25,12 @@ class CanvasContract {
         val activePaths: SnapshotStateList<PathData> = SnapshotStateList(),
         val cachedActivePaths: Stack<PathData> = Stack(),
         val disablePaths: Stack<PathData> = Stack(),
-        val undoStack: Stack<PathData> = Stack(), // Стек для отмены
-        val redoStack: Stack<PathData> = Stack(), // Стек для повтора
+        val undoStack: Stack<PathData> = Stack(),
+        val redoStack: Stack<PathData> = Stack(),
         val isShowingColorPalette: Boolean = false,
         val currentFrameId: Int = 0,
         val userInputType: UserInputType = UserInputType.PEN,
+        val animation: List<PathData> = emptyList()
     ) : UDF.State {
         @Stable
         enum class UserInputType {
@@ -50,6 +51,7 @@ class CanvasContract {
         ): Executor
         data object PrevAction: Executor
         data object NextAction: Executor
+        data object Animate: Executor
     }
 
     sealed interface Event: UDF.Event
