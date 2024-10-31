@@ -26,7 +26,8 @@ class MainActivity : ComponentActivity() {
 
                 CanvasScreen(
                     state = canvasViewModel.state,
-                    dispatch = canvasViewModel::dispatch
+                    dispatch = canvasViewModel::dispatch,
+                    events = canvasViewModel.events
                 )
             }
         }

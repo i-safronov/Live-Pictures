@@ -1,17 +1,23 @@
 package com.safronov.livepictures.ui.composable
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.viewModelScope
+import com.safronov.livepictures.udf.DispatchersList
 import com.safronov.livepictures.udf.EffectorScope
 import com.safronov.livepictures.udf.ExecutorScope
 import com.safronov.livepictures.udf.UDFViewModel
 import com.safronov.livepictures.ui.composable.CanvasContract.*
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.Stack
 
 class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
     initState = State()
 ) {
+    var animationJob: Job? = null
+
     override suspend fun ExecutorScope<Effect>.execute(ex: Executor): State =
         when (ex) {
             Executor.OnAddFrame -> {
@@ -137,12 +143,57 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                 }
             }
 
-            Executor.Animate -> {
-                val reversedPaths = state.activePaths.reversed()
+            Executor.MakeAnimation -> {
+                sendEffect(
+                    Effect.PrepareToAnimate(
+                        activePaths = state.activePaths,
+                        disablePaths = state.disablePaths,
+                        lastFrameId = state.currentFrameId
+                    )
+                )
+                sendEvent(
+                    Event.Animate
+                )
+                state.copy(
+                    isLoadingAnimation = true,
+                    startAnimationValue = ColorValue(enabled = false),
+                    stopAnimationValue = ColorValue(enabled = true)
+                )
+            }
+
+            is Executor.Animate -> {
+                sendEvent(
+                    Event.Animate
+                )
+                state.copy(
+                    isLoadingAnimation = false,
+                    animation = ex.animation,
+                    startAnimationValue = ColorValue(enabled = false),
+                    stopAnimationValue = ColorValue(enabled = false)
+                )
+            }
+
+            Executor.DismissAnimation -> {
+                sendEvent(Event.DismissAnimation)
+                animationJob?.cancel()
+                state.copy(
+                    isLoadingAnimation = false,
+                    animation = emptyList(),
+                    startAnimationValue = ColorValue(enabled = true),
+                    stopAnimationValue = ColorValue(enabled = false)
+                )
+            }
+        }
+
+    override suspend fun EffectorScope<Executor>.affect(ef: Effect) = when (ef) {
+        is Effect.PrepareToAnimate -> {
+            animationJob = viewModelScope.launch(DispatchersList.Base().io()) {
+                val reversedPaths: List<PathData> =
+                    ef.disablePaths.reversed() + ef.activePaths.reversed()
                 val groupByFrame = reversedPaths.groupBy { it.frameId }
                 val animation = mutableListOf<PathData>()
 
-                for (i in 0..state.currentFrameId) {
+                for (i in 0..ef.lastFrameId) {
                     animation.addAll(
                         groupByFrame.getOrElse(key = i, defaultValue = {
                             emptyList()
@@ -150,14 +201,13 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                     )
                 }
 
-                state.copy(
-                    animation = animation
+                dispatch(
+                    Executor.Animate(
+                        animation = animation
+                    )
                 )
             }
         }
-
-    override suspend fun EffectorScope<Executor>.affect(ef: Effect) {
-        //TODO
     }
 
 }

@@ -39,11 +39,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.safronov.livepictures.R
-import com.safronov.livepictures.ui.composable.CanvasContract.Executor
-import com.safronov.livepictures.ui.composable.CanvasContract.State
+import com.safronov.livepictures.udf.onEvent
+import com.safronov.livepictures.ui.composable.CanvasContract.*
 import com.safronov.livepictures.ui.composable.CanvasContract.State.UserInputType
+import com.safronov.livepictures.ui.composable.animation.AnimationDialog
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -65,12 +67,29 @@ val mainColors = listOf(
 fun CanvasScreen(
     modifier: Modifier = Modifier,
     state: State,
+    events: Channel<Event>,
     dispatch: (Executor) -> Unit
 ) {
     var pathColor by remember { mutableStateOf(Colors.Blue) }
     var isShowingColorPalette by remember { mutableStateOf(false) }
+    var isShowingAnimation by remember { mutableStateOf(false) }
     var bottomBarSize by remember { mutableStateOf(IntSize.Zero) }
     val scope = rememberCoroutineScope()
+
+    events.onEvent(
+        block = { event ->
+            when (event) {
+                is Event.Animate -> {
+                    isShowingAnimation = true
+                }
+
+                Event.DismissAnimation -> {
+                    isShowingAnimation = false
+                }
+            }
+        },
+        scope = scope
+    )
 
     Box(
         modifier = modifier
@@ -106,11 +125,12 @@ fun CanvasScreen(
                     },
                     stopAnimationValue = state.stopAnimationValue,
                     onStopAnimationValue = {
-                        //TODO
+                        isShowingAnimation = false
+                        dispatch(Executor.DismissAnimation)
                     },
                     startAnimationValue = state.startAnimationValue,
                     onStartAnimationValue = {
-                        //TODO
+                        dispatch(Executor.MakeAnimation)
                     }
                 )
             },
@@ -157,11 +177,12 @@ fun CanvasScreen(
             var path by remember { mutableStateOf(Path()) }
 
             Column(
-                modifier = Modifier.background(Colors.Background)
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp)
-                .clip(RoundedCornerShape(size = 20.dp))
+                modifier = Modifier
+                    .background(Colors.Background)
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(16.dp)
+                    .clip(RoundedCornerShape(size = 20.dp))
             ) {
                 Box(
                     modifier = Modifier
@@ -306,6 +327,16 @@ fun CanvasScreen(
             }
         }
     }
+
+    if (isShowingAnimation) {
+        AnimationDialog(
+            animation = state.animation,
+            isLoading = state.isLoadingAnimation,
+            onDismiss = {
+                dispatch(Executor.DismissAnimation)
+            }
+        )
+    }
 }
 
 @Composable
@@ -369,7 +400,8 @@ private fun BottomBar(
                     .size(32.dp),
                 painter = painterResource(R.drawable.ic_erase),
                 contentDescription = "Erase",
-                tint = penValue.copy(isActive = userInputType == UserInputType.ERASE).colorByState(),
+                tint = penValue.copy(isActive = userInputType == UserInputType.ERASE)
+                    .colorByState(),
             )
         }
 
@@ -568,6 +600,7 @@ fun CanvasScreenPreview() {
                 eraseValue = ColorValue(enabled = true),
                 instrumentsValue = ColorValue(enabled = true)
             ),
+            events = Channel(),
             dispatch = {
 
             }

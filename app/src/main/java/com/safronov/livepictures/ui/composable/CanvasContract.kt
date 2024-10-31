@@ -30,6 +30,7 @@ class CanvasContract {
         val isShowingColorPalette: Boolean = false,
         val currentFrameId: Int = 0,
         val userInputType: UserInputType = UserInputType.PEN,
+        val isLoadingAnimation: Boolean = false,
         val animation: List<PathData> = emptyList()
     ) : UDF.State {
         @Stable
@@ -51,11 +52,24 @@ class CanvasContract {
         ): Executor
         data object PrevAction: Executor
         data object NextAction: Executor
-        data object Animate: Executor
+        data object MakeAnimation: Executor
+        data class Animate(
+            val animation: List<PathData>
+        ): Executor
+        data object DismissAnimation: Executor
     }
 
-    sealed interface Event: UDF.Event
+    sealed interface Event: UDF.Event {
+        data object Animate: Event
+        data object DismissAnimation: Event
+    }
 
-    sealed interface Effect: UDF.Effect
+    sealed interface Effect: UDF.Effect {
+        data class PrepareToAnimate(
+            val activePaths: List<PathData>,
+            val disablePaths: List<PathData>,
+            val lastFrameId: Int
+        ): Effect
+    }
 
 }
