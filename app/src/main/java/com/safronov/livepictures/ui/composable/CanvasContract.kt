@@ -23,7 +23,6 @@ class CanvasContract {
         val instrumentsValue: ColorValue = ColorValue(enabled = false),
         val activePaths: SnapshotStateList<PathData> = SnapshotStateList(),
         val disablePaths: SnapshotStateList<PathData> = SnapshotStateList(),
-        val erasesPaths: SnapshotStateList<PathData> = SnapshotStateList(),
         val isShowingColorPalette: Boolean = false,
         val currentFrameId: Int = 0,
         val userInputType: UserInputType = UserInputType.PEN,

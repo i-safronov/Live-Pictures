@@ -153,7 +153,6 @@ fun CanvasScreen(
                 }
             }
         ) { innerPadding ->
-            val image = ImageBitmap.imageResource(id = R.drawable.ic_canvas)
             var tempPath = Path()
             var path by remember { mutableStateOf(Path()) }
 
@@ -170,7 +169,6 @@ fun CanvasScreen(
                 ) {
                     val activePaths = state.activePaths
                     val disablePaths = state.disablePaths
-                    val erasesPaths = state.erasesPaths
 
                     Canvas(
                         modifier = Modifier
@@ -233,15 +231,7 @@ fun CanvasScreen(
                             drawPath(
                                 path = pathData.path,
                                 color = pathData.color,
-                                style = Stroke(10f),
-                            )
-                        }
-
-                        erasesPaths.forEach { pathData ->
-                            drawPath(
-                                path = pathData.path,
-                                color = pathData.color,
-                                style = Stroke(12f),
+                                style = Stroke(14f),
                             )
                         }
 
@@ -252,11 +242,7 @@ fun CanvasScreen(
                             } else {
                                 Colors.White
                             },
-                            style = Stroke(if (state.userInputType == UserInputType.PEN) {
-                                10f
-                            } else {
-                                12f
-                            })
+                            style = Stroke(14f)
                         )
                     }
                 }

@@ -57,23 +57,13 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
             }
 
             is Executor.AddPath -> {
-                if (state.userInputType == PEN) {
-                    state.activePaths.add(
-                        PathData(
-                            path = ex.path,
-                            color = ex.color,
-                            frameId = state.currentFrameId,
-                        )
+                state.activePaths.add(
+                    PathData(
+                        path = ex.path,
+                        color = if (state.userInputType == PEN) ex.color else Colors.White,
+                        frameId = state.currentFrameId,
                     )
-                } else {
-                    state.erasesPaths.add(
-                        PathData(
-                            path = ex.path,
-                            color = Colors.White,
-                            frameId = state.currentFrameId,
-                        )
-                    )
-                }
+                )
                 state.copy()
             }
 
