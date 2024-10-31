@@ -1,6 +1,5 @@
 package com.safronov.livepictures.ui.composable.animation
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -80,12 +79,12 @@ fun AnimationDialog(
                         color = Colors.LightTextGray
                     )
                 } else {
-                    AnimatedPathsCanvas(
+                    SmoothAnimatedPathsCanvas(
                         modifier = Modifier
                             .clip(RoundedCornerShape(size = 20.dp))
                             .fillMaxSize()
                             .background(Colors.White),
-                        animation = animation
+                        paths = animation
                     )
                 }
             }

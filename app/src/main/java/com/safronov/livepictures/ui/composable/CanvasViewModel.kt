@@ -189,7 +189,7 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
         is Effect.PrepareToAnimate -> {
             animationJob = viewModelScope.launch(DispatchersList.Base().io()) {
                 val reversedPaths: List<PathData> =
-                    ef.disablePaths.reversed() + ef.activePaths.reversed()
+                    ef.activePaths.reversed() + ef.disablePaths.reversed()
                 val groupByFrame = reversedPaths.groupBy { it.frameId }
                 val animation = mutableListOf<PathData>()
 
