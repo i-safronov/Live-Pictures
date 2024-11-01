@@ -1,7 +1,6 @@
 package com.safronov.livepictures.ui.composable.animation
 
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInOutSine
@@ -35,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathMeasure
@@ -111,9 +111,10 @@ fun AnimationDialog(
                 } else {
                     animation.forEach {
                         AnimatedPath(
-                            strokeWidth = 14.dp,
+                            strokeWidth = 6.dp,
                             duration = 2000,
-                            pathStr = it.path
+                            pathStr = it.path,
+                            color = it.color
                         )
                     }
                 }
@@ -125,56 +126,48 @@ fun AnimationDialog(
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun AnimatedPath(
+    modifier: Modifier = Modifier,
     pathStr: Path,
     strokeWidth: Dp,
+    color: Color = Colors.Blue,
     duration: Int,
-    modifier: Modifier = Modifier
 ) {
     with(LocalDensity.current) {
         BoxWithConstraints(modifier) {
-            var path by remember { mutableStateOf(Path())}
-
+            var path by remember { mutableStateOf(Path()) }
             val strokeWidthPx = strokeWidth.toPx()
 
-            // Here we transform the path string in path and make it fill the screen
-            LaunchedEffect(pathStr, strokeWidthPx) {
+            LaunchedEffect(pathStr) {
                 path = pathStr
             }
 
-
             val pathMeasure = remember { PathMeasure() }
-
             pathMeasure.setPath(path, false)
 
-            val infiniteTransition = rememberInfiniteTransition(label = "Path infinite transition")
+            val animatedProgress = remember { Animatable(0f) }
 
-            // Animating infinitely a float between 0f and the path length
-            val progress by infiniteTransition.animateFloat(
-                initialValue = 0f,
-                targetValue = pathMeasure.length,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(duration),
-                    repeatMode = RepeatMode.Reverse
-                ), label = "Path animation"
-            )
+            LaunchedEffect(pathMeasure.length) {
+                animatedProgress.animateTo(
+                    targetValue = pathMeasure.length,
+                    animationSpec = tween(duration)
+                )
+            }
 
-            // Create a intermediate path from 0f to progress
             val animatedPath = remember {
                 derivedStateOf {
                     val destination = Path()
-                    pathMeasure.setPath(path, false)
-                    pathMeasure.getSegment(0f, progress, destination)
+                    pathMeasure.getSegment(0f, animatedProgress.value, destination)
                     destination
                 }
             }
 
-            // Draw the path
             Canvas(modifier = Modifier.fillMaxWidth()) {
-                drawPath(animatedPath.value, Colors.Blue, style = Stroke(width = strokeWidthPx))
+                drawPath(animatedPath.value, color, style = Stroke(width = strokeWidthPx))
             }
         }
     }
 }
+
 
 fun Path.fillBounds(strokeWidthPx: Float, maxWidth: Int, maxHeight: Int) {
     val pathSize = getBounds()
