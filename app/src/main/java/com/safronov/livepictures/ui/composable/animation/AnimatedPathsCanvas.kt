@@ -1,74 +1,53 @@
 package com.safronov.livepictures.ui.composable.animation
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathMeasure
-import androidx.compose.ui.graphics.drawscope.Stroke
-import com.safronov.livepictures.ui.composable.PathData
-import kotlinx.coroutines.delay
+import android.animation.ValueAnimator
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.Rect
+import android.graphics.Region
+import android.view.animation.LinearInterpolator
+import androidx.compose.ui.graphics.asAndroidPath
 
-@Composable
-fun SmoothAnimatedPathsCanvas(
-    paths: List<PathData>, // Assuming PathData holds a Path
-    modifier: Modifier = Modifier,
-    strokeWidth: Float = 14f,
-    durationPerPathMillis: Int = 200
+class PathAnimator(
+    private val paths: List<Path>,
+    private val duration: Long = 2000L // Длительность анимации в миллисекундах
 ) {
-    var currentPathIndex by remember { mutableStateOf(0) }
-    val animatedProgress = remember { Animatable(0f) }
+    private var currentProgress: Float = 0f
+    private val boundsList = mutableListOf<Rect>()
+    private var _paths: List<Path> = paths.map { it }
 
-    LaunchedEffect(currentPathIndex) {
-        if (currentPathIndex < paths.size) {
-            animatedProgress.snapTo(0f)
-            animatedProgress.animateTo(
-                targetValue = 100f,
-                animationSpec = tween(durationMillis = durationPerPathMillis, easing = LinearOutSlowInEasing)
-            )
-            delay(300)
-            currentPathIndex++
+    init {
+        paths.map { it }.forEach { path ->
+            val region = Region()
+            region.setPath(path, Region(0, 0, Int.MAX_VALUE, Int.MAX_VALUE))
+            boundsList.add(region.bounds)
         }
     }
 
-    Canvas(modifier = modifier) {
-        // Draw all previous paths fully since they are already completed
-        paths.take(currentPathIndex).forEach { pathData ->
-            drawPath(
-                path = pathData.path,
-                color = pathData.color,
-                style = Stroke(width = strokeWidth)
-            )
-        }
-
-        // Draw the current path with animated progress for a smooth handwriting effect
-        if (currentPathIndex < paths.size) {
-            val currentPath = paths[currentPathIndex]
-            val pathMeasure = PathMeasure()
-            pathMeasure.setPath(currentPath.path, false)
-
-            val animatedPath = Path().apply {
-                pathMeasure.getSegment(
-                    startDistance = 0f,
-                    stopDistance = animatedProgress.value * pathMeasure.length,
-                    destination = this,
-                    startWithMoveTo = true
-                )
+    // Функция для запуска анимации
+    fun startAnimation() {
+        val animator = ValueAnimator.ofFloat(0f, 1f).apply {
+            this.duration = duration
+            interpolator = LinearInterpolator()
+            addUpdateListener {
+                currentProgress = it.animatedValue as Float
             }
+        }
+        animator.start()
+    }
 
-            drawPath(
-                path = animatedPath,
-                color = currentPath.color,
-                style = Stroke(width = strokeWidth)
-            )
+    fun draw(canvas: Canvas, paint: Paint) {
+        paths.forEachIndexed { index, path ->
+            val bounds = boundsList[index]
+            canvas.save()
+
+            canvas.scale(currentProgress, currentProgress, bounds.centerX().toFloat(), bounds.centerY().toFloat())
+
+            canvas.drawPath(path, paint)
+            canvas.restore()
         }
     }
 }
+
+

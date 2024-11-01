@@ -1,5 +1,6 @@
 package com.safronov.livepictures.ui.composable
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.viewModelScope
 import com.safronov.livepictures.udf.DispatchersList
@@ -80,6 +81,8 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                         frameId = state.currentFrameId
                     )
 
+                    val t = element.path
+                    Log.d("ANIM_PATH", "PATHVM: ${t.getBounds()}")
                     state.activePaths.add(element)
                     state.cachedActivePaths.add(index = state.activePaths.size - 1, element)
 

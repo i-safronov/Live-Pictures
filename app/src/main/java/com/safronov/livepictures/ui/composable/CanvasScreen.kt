@@ -1,5 +1,6 @@
 package com.safronov.livepictures.ui.composable
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -30,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -188,6 +190,7 @@ fun CanvasScreen(
                     modifier = Modifier
                         .background(Colors.White)
                 ) {
+                    var activePath by remember { mutableStateOf(Path()) } // Текущий активный путь
                     val activePaths = state.activePaths
                     val disablePaths = state.disablePaths
 
@@ -197,39 +200,21 @@ fun CanvasScreen(
                             .pointerInput(Unit) {
                                 detectDragGestures(
                                     onDragStart = { offset ->
-                                        tempPath = Path().apply {
-                                            moveTo(offset.x, offset.y)
-                                        }
-                                        path = tempPath
+                                        activePath = Path().apply { moveTo(offset.x, offset.y) } // Новый путь при начале рисования
                                     },
                                     onDragEnd = {
+                                        // Добавляем путь после завершения жеста
                                         dispatch(
                                             Executor.AddPath(
-                                                path = tempPath,
+                                                path = activePath, // Используем текущий путь
                                                 color = pathColor,
                                             )
                                         )
-
-                                        scope.launch {
-                                            delay(100)
-                                            path = Path()
-                                            tempPath = path
-                                        }
+                                        activePath = Path() // Очищаем активный путь
                                     },
-                                    onDrag = { change, dragAmount ->
-                                        tempPath.moveTo(
-                                            x = change.position.x - dragAmount.x,
-                                            y = change.position.y - dragAmount.y
-                                        )
-
-                                        tempPath.lineTo(
-                                            x = change.position.x,
-                                            y = change.position.y
-                                        )
-
-                                        path = Path().apply {
-                                            addPath(tempPath)
-                                        }
+                                    onDrag = { change, _ ->
+                                        // Обновляем активный путь на каждом шаге рисования
+                                        activePath.lineTo(change.position.x, change.position.y)
                                     }
                                 )
                             }
@@ -238,17 +223,13 @@ fun CanvasScreen(
                             drawPath(
                                 path = pathData.path,
                                 color = pathData.color,
-                                style = Stroke(14f),
+                                style = Stroke(14f)
                             )
                         }
 
                         drawPath(
-                            path = path,
-                            color = if (state.userInputType == UserInputType.PEN) {
-                                pathColor
-                            } else {
-                                Colors.White
-                            },
+                            path = activePath,
+                            color = if (state.userInputType == UserInputType.PEN) pathColor else Colors.White,
                             style = Stroke(14f)
                         )
                     }
@@ -256,16 +237,17 @@ fun CanvasScreen(
                     Canvas(
                         modifier = Modifier
                             .fillMaxSize()
-                            .alpha(alpha = .3f)
+                            .alpha(0.3f)
                     ) {
                         disablePaths.forEach { pathData ->
                             drawPath(
                                 path = pathData.path,
                                 color = pathData.color,
-                                style = Stroke(10f),
+                                style = Stroke(10f)
                             )
                         }
                     }
+
                 }
             }
         }
