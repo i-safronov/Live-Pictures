@@ -154,9 +154,6 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                         lastFrameId = state.currentFrameId
                     )
                 )
-                sendEvent(
-                    Event.Animate
-                )
                 state.copy(
                     isLoadingAnimation = true,
                     startAnimationValue = ColorValue(enabled = false),
@@ -165,25 +162,38 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
             }
 
             is Executor.Animate -> {
-                sendEvent(
-                    Event.Animate
-                )
                 state.copy(
                     isLoadingAnimation = false,
                     animation = ex.animation,
                     startAnimationValue = ColorValue(enabled = false),
-                    stopAnimationValue = ColorValue(enabled = false)
+                    stopAnimationValue = ColorValue(enabled = true),
+                    prevActionValue = ColorValue(enabled = false),
+                    nextActionValue = ColorValue(enabled = false),
+                    deleteFrameValue = ColorValue(enabled = false),
+                    addFrameValue = ColorValue(enabled = false),
+                    penValue = ColorValue(enabled = false),
+                    brushValue = ColorValue(enabled = false),
+                    colorValue = ColorValue(enabled = false),
+                    isAnimating = true
                 )
             }
 
             Executor.DismissAnimation -> {
-                sendEvent(Event.DismissAnimation)
                 animationJob?.cancel()
                 state.copy(
                     isLoadingAnimation = false,
                     animation = emptyList(),
                     startAnimationValue = ColorValue(enabled = true),
-                    stopAnimationValue = ColorValue(enabled = false)
+                    stopAnimationValue = ColorValue(enabled = false),
+                    prevActionValue = ColorValue(enabled = state.activePaths.isNotEmpty()),
+                    nextActionValue = ColorValue(enabled = state.redoStack.isNotEmpty()),
+                    deleteFrameValue = ColorValue(enabled = state.currentFrameId > 0f),
+                    addFrameValue = ColorValue(enabled = true),
+                    penValue = ColorValue(enabled = true),
+                    brushValue = ColorValue(enabled = false),
+                    colorValue = ColorValue(enabled = true),
+                    eraseValue = ColorValue(enabled = true),
+                    isAnimating = false
                 )
             }
         }

@@ -67,5 +67,5 @@ data class ColorValue(
     val isActive: Boolean = false,
     val activeColor: Color = Colors.Active
 ) {
-    fun colorByState() = if (isActive) activeColor else if (enabled) enableColor else disableColor
+    fun colorByState() = if (enabled) { if (isActive) activeColor else enableColor } else disableColor
 }

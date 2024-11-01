@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AnimatedColumn(
     modifier: Modifier = Modifier,
-    duration: Int = 1000,
+    duration: Int = 700,
     animation: List<PathData>,
 ) {
     Column(
@@ -40,7 +40,7 @@ fun AnimatedColumn(
     ) {
         var index by remember { mutableStateOf(0) }
         var currentPathData by remember { mutableStateOf(animation.getOrNull(index)) }
-        val strokeWidthPx = with(LocalDensity.current) { 8.dp.toPx() }
+        val strokeWidthPx = with(LocalDensity.current) { 6.dp.toPx() }
         val scope = rememberCoroutineScope()
 
         val completedPaths = remember { mutableStateListOf<PathData>() }

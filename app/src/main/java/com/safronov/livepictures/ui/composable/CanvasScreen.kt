@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -70,24 +71,8 @@ fun CanvasScreen(
 ) {
     var pathColor by remember { mutableStateOf(Colors.Blue) }
     var isShowingColorPalette by remember { mutableStateOf(false) }
-    var isShowingAnimation by remember { mutableStateOf(false) }
     var bottomBarSize by remember { mutableStateOf(IntSize.Zero) }
     val scope = rememberCoroutineScope()
-
-    events.onEvent(
-        block = { event ->
-            when (event) {
-                is Event.Animate -> {
-                    isShowingAnimation = true
-                }
-
-                Event.DismissAnimation -> {
-                    isShowingAnimation = false
-                }
-            }
-        },
-        scope = scope
-    )
 
     Box(
         modifier = modifier
@@ -100,37 +85,45 @@ fun CanvasScreen(
     ) {
         Scaffold(
             topBar = {
-                TopBar(
-                    prevActionValue = state.prevActionValue,
-                    onPrevAction = {
-                        dispatch(Executor.PrevAction)
-                    },
-                    nextActionValue = state.nextActionValue,
-                    onNextAction = {
-                        dispatch(Executor.NextAction)
-                    },
-                    deleteFrameValue = state.deleteFrameValue,
-                    onDeleteFrame = {
-                        dispatch(Executor.OnDeleteFrame)
-                    },
-                    addFrameValue = state.addFrameValue,
-                    onAddFrame = {
-                        dispatch(Executor.OnAddFrame)
-                    },
-                    listOfFramesValue = state.listOfFramesValue,
-                    onListOfFrames = {
-                        //TODO
-                    },
-                    stopAnimationValue = state.stopAnimationValue,
-                    onStopAnimationValue = {
-                        isShowingAnimation = false
-                        dispatch(Executor.DismissAnimation)
-                    },
-                    startAnimationValue = state.startAnimationValue,
-                    onStartAnimationValue = {
-                        dispatch(Executor.MakeAnimation)
+                Column {
+                    TopBar(
+                        prevActionValue = state.prevActionValue,
+                        onPrevAction = {
+                            dispatch(Executor.PrevAction)
+                        },
+                        nextActionValue = state.nextActionValue,
+                        onNextAction = {
+                            dispatch(Executor.NextAction)
+                        },
+                        deleteFrameValue = state.deleteFrameValue,
+                        onDeleteFrame = {
+                            dispatch(Executor.OnDeleteFrame)
+                        },
+                        addFrameValue = state.addFrameValue,
+                        onAddFrame = {
+                            dispatch(Executor.OnAddFrame)
+                        },
+                        listOfFramesValue = state.listOfFramesValue,
+                        onListOfFrames = {
+                            //TODO
+                        },
+                        stopAnimationValue = state.stopAnimationValue,
+                        onStopAnimationValue = {
+                            dispatch(Executor.DismissAnimation)
+                        },
+                        startAnimationValue = state.startAnimationValue,
+                        onStartAnimationValue = {
+                            dispatch(Executor.MakeAnimation)
+                        }
+                    )
+
+                    if (state.isLoadingAnimation) {
+                        LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = Colors.Blue
+                        )
                     }
-                )
+                }
             },
             bottomBar = {
                 Box(modifier = Modifier.fillMaxWidth()) {
@@ -158,9 +151,11 @@ fun CanvasScreen(
                             //TODO
                         },
                         colorValue = ColorValue(
-                            enabled = true,
+                            enabled = state.colorValue.enabled,
                             enableColor = pathColor,
-                            disableColor = pathColor
+                            disableColor = pathColor.copy(
+                                alpha = .3f
+                            )
                         ),
                         isShowingColorPalette = isShowingColorPalette,
                         userInputType = state.userInputType,
@@ -187,7 +182,7 @@ fun CanvasScreen(
                     val activePaths = state.activePaths
                     val disablePaths = state.disablePaths
 
-                    if (isShowingAnimation) {
+                    if (state.isAnimating) {
                         AnimatedColumn(
                             animation = state.animation
                         )
