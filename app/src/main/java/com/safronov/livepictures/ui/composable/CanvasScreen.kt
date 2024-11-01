@@ -210,11 +210,14 @@ fun CanvasScreen(
                                                 color = pathColor,
                                             )
                                         )
-                                        activePath = Path() // Очищаем активный путь
+                                        activePath = Path()
                                     },
                                     onDrag = { change, _ ->
                                         // Обновляем активный путь на каждом шаге рисования
-                                        activePath.lineTo(change.position.x, change.position.y)
+                                        activePath = Path().apply {
+                                            activePath.lineTo(change.position.x, change.position.y)
+                                            addPath(activePath)
+                                        }
                                     }
                                 )
                             }
