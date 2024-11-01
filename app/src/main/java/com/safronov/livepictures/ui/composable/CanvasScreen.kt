@@ -44,6 +44,7 @@ import com.safronov.livepictures.R
 import com.safronov.livepictures.udf.onEvent
 import com.safronov.livepictures.ui.composable.CanvasContract.*
 import com.safronov.livepictures.ui.composable.CanvasContract.State.UserInputType
+import com.safronov.livepictures.ui.composable.animation.AnimatedColumn
 import com.safronov.livepictures.ui.composable.animation.AnimationDialog
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
@@ -175,9 +176,6 @@ fun CanvasScreen(
                 }
             }
         ) { innerPadding ->
-            var tempPath = Path()
-            var path by remember { mutableStateOf(Path()) }
-
             Column(
                 modifier = Modifier
                     .background(Colors.Background)
@@ -190,67 +188,70 @@ fun CanvasScreen(
                     modifier = Modifier
                         .background(Colors.White)
                 ) {
-                    var activePath by remember { mutableStateOf(Path()) } // Текущий активный путь
+                    var activePath by remember { mutableStateOf(Path()) }
                     val activePaths = state.activePaths
                     val disablePaths = state.disablePaths
 
-                    Canvas(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .pointerInput(Unit) {
-                                detectDragGestures(
-                                    onDragStart = { offset ->
-                                        activePath = Path().apply { moveTo(offset.x, offset.y) } // Новый путь при начале рисования
-                                    },
-                                    onDragEnd = {
-                                        // Добавляем путь после завершения жеста
-                                        dispatch(
-                                            Executor.AddPath(
-                                                path = activePath, // Используем текущий путь
-                                                color = pathColor,
+                    if (isShowingAnimation) {
+                        AnimatedColumn(
+                            animation = state.animation
+                        )
+                    } else {
+                        Canvas(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .pointerInput(Unit) {
+                                    detectDragGestures(
+                                        onDragStart = { offset ->
+                                            activePath = Path().apply { moveTo(offset.x, offset.y) }
+                                        },
+                                        onDragEnd = {
+                                            dispatch(
+                                                Executor.AddPath(
+                                                    path = activePath,
+                                                    color = pathColor,
+                                                )
                                             )
-                                        )
-                                        activePath = Path()
-                                    },
-                                    onDrag = { change, _ ->
-                                        // Обновляем активный путь на каждом шаге рисования
-                                        activePath = Path().apply {
-                                            activePath.lineTo(change.position.x, change.position.y)
-                                            addPath(activePath)
+                                            activePath = Path()
+                                        },
+                                        onDrag = { change, _ ->
+                                            activePath = Path().apply {
+                                                activePath.lineTo(change.position.x, change.position.y)
+                                                addPath(activePath)
+                                            }
                                         }
-                                    }
+                                    )
+                                }
+                        ) {
+                            activePaths.forEach { pathData ->
+                                drawPath(
+                                    path = pathData.path,
+                                    color = pathData.color,
+                                    style = Stroke(14f)
                                 )
                             }
-                    ) {
-                        activePaths.forEach { pathData ->
+
                             drawPath(
-                                path = pathData.path,
-                                color = pathData.color,
+                                path = activePath,
+                                color = if (state.userInputType == UserInputType.PEN) pathColor else Colors.White,
                                 style = Stroke(14f)
                             )
                         }
 
-                        drawPath(
-                            path = activePath,
-                            color = if (state.userInputType == UserInputType.PEN) pathColor else Colors.White,
-                            style = Stroke(14f)
-                        )
-                    }
-
-                    Canvas(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .alpha(0.3f)
-                    ) {
-                        disablePaths.forEach { pathData ->
-                            drawPath(
-                                path = pathData.path,
-                                color = pathData.color,
-                                style = Stroke(10f)
-                            )
+                        Canvas(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .alpha(0.3f)
+                        ) {
+                            disablePaths.forEach { pathData ->
+                                drawPath(
+                                    path = pathData.path,
+                                    color = pathData.color,
+                                    style = Stroke(10f)
+                                )
+                            }
                         }
                     }
-
                 }
             }
         }
@@ -311,16 +312,6 @@ fun CanvasScreen(
                 }
             }
         }
-    }
-
-    if (isShowingAnimation) {
-        AnimationDialog(
-            animation = state.animation,
-            isLoading = state.isLoadingAnimation,
-            onDismiss = {
-                dispatch(Executor.DismissAnimation)
-            }
-        )
     }
 }
 
