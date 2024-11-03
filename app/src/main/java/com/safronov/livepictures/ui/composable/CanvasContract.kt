@@ -20,7 +20,7 @@ class CanvasContract {
         val startAnimationValue: ColorValue = ColorValue(enabled = false),
         val penValue: ColorValue = ColorValue(enabled = true, isActive = true),
         val brushValue: ColorValue = ColorValue(enabled = false),
-        val eraseValue: ColorValue = ColorValue(enabled = true),
+        val eraseValue: ColorValue = ColorValue(enabled = false),
         val instrumentsValue: ColorValue = ColorValue(enabled = false),
         val colorValue: ColorValue = ColorValue(enabled = true),
         val activePaths: SnapshotStateList<PathData> = SnapshotStateList(),

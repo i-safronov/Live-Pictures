@@ -192,7 +192,7 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                     penValue = ColorValue(enabled = true),
                     brushValue = ColorValue(enabled = false),
                     colorValue = ColorValue(enabled = true),
-                    eraseValue = ColorValue(enabled = true),
+                    eraseValue = ColorValue(enabled = false),
                     isAnimating = false
                 )
             }

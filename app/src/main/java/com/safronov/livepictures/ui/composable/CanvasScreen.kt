@@ -366,7 +366,7 @@ private fun BottomBar(
                     .size(32.dp),
                 painter = painterResource(R.drawable.ic_erase),
                 contentDescription = "Erase",
-                tint = penValue.copy(isActive = userInputType == UserInputType.ERASE)
+                tint = eraseValue.copy(isActive = userInputType == UserInputType.ERASE)
                     .colorByState(),
             )
         }
