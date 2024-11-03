@@ -56,9 +56,15 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                     val prevFrame = state.currentFrameId - 1
 
                     state.activePaths.clear()
+                    state.redoStack.removeIf {
+                        it.frameId > prevFrame
+                    }
+                    state.undoStack.removeIf {
+                        it.frameId > prevFrame
+                    }
 
                     activePaths.addAll(state.disablePaths.filter { it.frameId == prevFrame })
-                    disablePaths.addAll(state.disablePaths.filter { it.frameId != prevFrame })
+                    disablePaths.addAll(state.disablePaths.filter { it.frameId > prevFrame })
                     cachedActivePaths.addAll(activePaths)
 
                     state.copy(
@@ -66,7 +72,13 @@ class CanvasViewModel : UDFViewModel<State, Executor, Effect, Event>(
                         disablePaths = disablePaths,
                         deleteFrameValue = if (prevFrame < 1) ColorValue(enabled = false) else state.deleteFrameValue,
                         currentFrameId = prevFrame,
-                        cachedActivePaths = cachedActivePaths
+                        cachedActivePaths = cachedActivePaths,
+                        prevActionValue = ColorValue(
+                            enabled = activePaths.isNotEmpty()
+                        ),
+                        nextActionValue = ColorValue(
+                            enabled = state.redoStack.isNotEmpty()
+                        ),
                     )
                 }
             }
