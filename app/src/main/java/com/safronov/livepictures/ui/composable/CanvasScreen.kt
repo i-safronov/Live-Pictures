@@ -49,6 +49,8 @@ import com.safronov.livepictures.ui.composable.animation.AnimatedColumn
 import com.safronov.livepictures.ui.theme.ColorValue
 import com.safronov.livepictures.ui.theme.Colors
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 data class PathData(
     val path: Path = Path(),
@@ -201,6 +203,20 @@ fun CanvasScreen(
                         Canvas(
                             modifier = Modifier
                                 .fillMaxSize()
+                                .alpha(0.3f)
+                        ) {
+                            disablePaths.forEach { pathData ->
+                                drawPath(
+                                    path = pathData.path,
+                                    color = pathData.color,
+                                    style = Stroke(10f)
+                                )
+                            }
+                        }
+
+                        Canvas(
+                            modifier = Modifier
+                                .fillMaxSize()
                                 .pointerInput(Unit) {
                                     detectDragGestures(
                                         onDragStart = { offset ->
@@ -213,7 +229,10 @@ fun CanvasScreen(
                                                     color = pathColor,
                                                 )
                                             )
-                                            activePath = Path()
+                                            scope.launch {
+                                                delay(500)
+                                                activePath = Path()
+                                            }
                                         },
                                         onDrag = { change, _ ->
                                             activePath = Path().apply {
@@ -237,20 +256,6 @@ fun CanvasScreen(
                                 color = if (state.userInputType == UserInputType.PEN) pathColor else Colors.White,
                                 style = Stroke(14f)
                             )
-                        }
-
-                        Canvas(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .alpha(0.3f)
-                        ) {
-                            disablePaths.forEach { pathData ->
-                                drawPath(
-                                    path = pathData.path,
-                                    color = pathData.color,
-                                    style = Stroke(10f)
-                                )
-                            }
                         }
                     }
                 }
