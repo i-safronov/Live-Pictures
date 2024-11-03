@@ -36,7 +36,8 @@ fun AnimatedColumn(
     animation: List<PathData>,
 ) {
     Column(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier
+            .fillMaxSize()
     ) {
         var index by remember { mutableStateOf(0) }
         var currentPathData by remember { mutableStateOf(animation.getOrNull(index)) }

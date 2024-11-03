@@ -2,6 +2,7 @@ package com.safronov.livepictures.ui.composable
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -32,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -182,8 +184,17 @@ fun CanvasScreen(
                     val activePaths = state.activePaths
                     val disablePaths = state.disablePaths
 
+                    Image(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        painter = painterResource(R.drawable.ic_canvas),
+                        contentDescription = "Content canvas",
+                        contentScale = ContentScale.Crop
+                    )
+
                     if (state.isAnimating) {
                         AnimatedColumn(
+                            modifier = Modifier.fillMaxSize(),
                             animation = state.animation
                         )
                     } else {
